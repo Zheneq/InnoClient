@@ -57,21 +57,9 @@ void SInnoDogmaWidget::RebuildWidget()
 				.HAlign(HAlign_Left)
 				.VAlign(VAlign_Top)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						[
-							SNew(STextBlock)
-								.TextStyle(&DogmaStyle->TextStyle)
-								.Text(FText::FromString(Words[i]))
-						]
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						[
-							SNew(STextBlock)
-								.TextStyle(&DogmaStyle->TextStyle)
-								.Text(FText::FromString(Words[i+1]))
-						]
+					SNew(STextBlock)
+						.TextStyle(&DogmaStyle->TextStyle)
+						.Text(FText::FromString(Words[i] + Words[i+1]))
 				];
 		}
 	}
