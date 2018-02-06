@@ -25,8 +25,6 @@ public:
 		FString PlayerName;
 	UPROPERTY(EditAnywhere)
 		FString PlayerPronoun;
-	//UPROPERTY(EditAnywhere)
-	//	FString PlayerCookie;
 
 
 	UFUNCTION(BlueprintCallable, Category = "InnoLow")
@@ -78,10 +76,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Lobby")
 		FLobbyDelegateUser Lobby_User;
 
-	// Card list URL
-	UPROPERTY(BlueprintAssignable, Category = "Lobby")
-		FLobbyDelegateString Lobby_Cards;
-
 	// Lobby description
 	UPROPERTY(BlueprintAssignable, Category = "Lobby")
 		FLobbyDelegateString Lobby_Desc;
@@ -109,7 +103,7 @@ public:
 	void InnoCancelChoose(const TSharedPtr<FJsonObject> Object);
 
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FInnoDelegateChoose, int32, RequestId, const FString&, Prompt, const TArray<FString>&, Choices, int32, MinCount, int32, MaxCount);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInnoDelegateChoose, int32, RequestId, const FString&, Prompt, const TArray<FString>&, Choices, const TArray<FString>&, ChoiceKeys, int32, MinCount, int32, MaxCount);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInnoDelegateCancelChoose, int32, RequestId);
 
 	// User prompt
@@ -119,5 +113,29 @@ public:
 	// Cancel prompt (i.e. not answering for too long)
 	UPROPERTY(BlueprintAssignable, Category = "Inno")
 		FInnoDelegateCancelChoose CancelChoose;
+
+	// GAME
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInnoDelegateInt, int32, Number);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FInnoDelegateGameSetup, int32, PlayerCount, int32, AchievementTarget, bool, bEchoes, bool, bFigures, bool, bCities);
+
+
+	// Card list URL
+	void InnoCardInfo(const TSharedPtr<FJsonObject> Object);
+
+	UPROPERTY(BlueprintAssignable, Category = "Lobby")
+		FLobbyDelegateString Inno_Cards;
+
+	// Player count
+	void InnoPlayerCount(const TSharedPtr<FJsonObject> Object);
+
+	UPROPERTY(BlueprintAssignable, Category = "Lobby")
+		FInnoDelegateInt Inno_PlayerCount;
+
+	// Game setup
+	void InnoGameSetup(const TSharedPtr<FJsonObject> Object);
+
+	UPROPERTY(BlueprintAssignable, Category = "Lobby")
+		FInnoDelegateGameSetup Inno_GameSetup;
 
 };

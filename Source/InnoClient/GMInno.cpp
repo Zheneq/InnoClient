@@ -59,6 +59,14 @@ bool AGMInno::InnoUpdate(FString JsonUpdate)
 			{
 				InnoHideLobby(Object);
 			}
+			else if (Command == TEXT("card_info"))
+			{
+				InnoCardInfo(Object);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdate: Unknown command: %s."), *Command);
+			}
 
 		}
 	}
@@ -96,7 +104,7 @@ void AGMInno::InnoShowLobby(const TSharedPtr<FJsonObject> Object)
 
 	if (Object->TryGetStringField(TEXT("url"), StringParam))
 	{
-		Lobby_Cards.Broadcast(StringParam);
+		InnoCardInfo(Object);
 	}
 
 	if (Object->TryGetStringField(TEXT("lobby_desc"), StringParam))
@@ -129,6 +137,57 @@ void AGMInno::InnoShowLobby(const TSharedPtr<FJsonObject> Object)
 		LobbyNextChooseId = DoubleParam;
 	}
 
+}
+
+void AGMInno::InnoCardInfo(const TSharedPtr<FJsonObject> Object)
+{
+	FString Url;
+	check(Object.IsValid());
+
+	if (Object->TryGetStringField(TEXT("url"), Url))
+	{
+		Inno_Cards.Broadcast(Url);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoCardInfo: Unsupported parameters."));
+	}
+}
+
+void AGMInno::InnoPlayerCount(const TSharedPtr<FJsonObject> Object)
+{
+	int32 PlayerCount;
+	check(Object.IsValid());
+
+	if (Object->TryGetNumberField(TEXT("player_count"), PlayerCount))
+	{
+		Inno_PlayerCount.Broadcast(PlayerCount);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoPlayerCount: Unsupported parameters."));
+	}
+}
+
+void AGMInno::InnoGameSetup(const TSharedPtr<FJsonObject> Object)
+{
+	int32 PlayerCount, AchievementTarget;
+	bool bEchoes, bFigures, bCities;
+
+	check(Object.IsValid());
+
+	if (Object->TryGetNumberField(TEXT("player_count"),       PlayerCount) &&
+		Object->TryGetNumberField(TEXT("achievement_target"), AchievementTarget) &&
+		Object->TryGetBoolField(TEXT("show_echoes"),          bEchoes) &&
+		Object->TryGetBoolField(TEXT("show_figures"),         bFigures) &&
+		Object->TryGetBoolField(TEXT("show_cities"),          bCities))
+	{
+		Inno_GameSetup.Broadcast(PlayerCount, AchievementTarget, bEchoes, bFigures, bCities);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoGameSetup: Unsupported parameters."));
+	}
 }
 
 
@@ -175,6 +234,8 @@ void AGMInno::InnoSay(const TSharedPtr<FJsonObject> Object)
 {
 	check(Object.IsValid());
 
+	//TODO: marker
+
 	FString String;
 
 	if (Object->TryGetStringField(TEXT("extra"), String))
@@ -183,9 +244,13 @@ void AGMInno::InnoSay(const TSharedPtr<FJsonObject> Object)
 		{
 			Chat.Broadcast(Object->GetIntegerField(TEXT("timestamp")), Object->GetStringField(TEXT("message")));
 		}
+		else if (String == TEXT("temp"))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoSay [Temp]: \"%s\"."), *Object->GetStringField(TEXT("message")));
+		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoSay: Unsupported parameters."))
+			UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoSay: Unsupported parameters."));
 		}
 	}
 	else
@@ -198,6 +263,8 @@ void AGMInno::InnoChoose(const TSharedPtr<FJsonObject> Object)
 {
 	check(Object.IsValid());
 
+	//TODO: from_supply
+
 	FString Prompt;
 	TArray<FString> Choices;
 	// suspend_propose
@@ -205,11 +272,15 @@ void AGMInno::InnoChoose(const TSharedPtr<FJsonObject> Object)
 	if (Object->TryGetStringField(TEXT("prompt"), Prompt) && Object->TryGetStringArrayField(TEXT("choices"), Choices))
 	{
 		int32 ChooseId = Object->GetIntegerField(TEXT("id"));
-		Choose.Broadcast(ChooseId, Prompt, Choices, Object->GetIntegerField(TEXT("min")), Object->GetIntegerField(TEXT("max")));
+
+		TArray<FString> ChoiceKeys;
+		bool bHasKeys = Object->TryGetStringArrayField(TEXT("choice_keys"), ChoiceKeys);
+
+		Choose.Broadcast(ChooseId, Prompt, Choices, bHasKeys ? ChoiceKeys : Choices, Object->GetIntegerField(TEXT("min")), Object->GetIntegerField(TEXT("max")));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoChoose: Unsupported parameters."))
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoChoose: Unsupported parameters."));
 	}
 }
 
