@@ -24,12 +24,14 @@ private:
 	FHttpModule* Http;
 
 	TWeakPtr<IHttpRequest> CurrentRequest;
-
 	FHttpResponseDelegate OnResponse;
-
 	void Response(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	void LightRequestResponse(FHttpRequestPtr Req, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	TWeakPtr<IHttpRequest> CurrentGetPageRequest;
+	FHttpResponseDelegate OnGetPageResponse;
+	void GetPageResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	
 public:
 	URequester();
@@ -40,6 +42,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Requester")
 		void LightRequest(FString Page, const FString& Content);
+
+	// Returns false if there is an active request
+	UFUNCTION(BlueprintCallable, Category = "Requester")
+		bool GetPage(const FHttpResponseDelegate& OnResponseCallback, FString Page);
 
 	UPROPERTY(BlueprintAssignable, Category = "InnoLow")
 		FHttpResponseDelegateMC OnLightRequestResponse;

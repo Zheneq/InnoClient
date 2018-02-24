@@ -10,16 +10,26 @@
  * 
  */
 UCLASS()
-class INNOCLIENT_API UInnoFunctionLibrary : public UObject
+class INNOCLIENT_API UInnoFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
+		static EInnoColor ColorFromString(const UObject* WorldContextObject, FString String);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
+		static EInnoResource ResourceFromString(const UObject* WorldContextObject, FString String);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
+		static const FInnoCard& GetCard(const UObject* WorldContextObject, int32 Index);
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
 		static FString GetInlineScriptVar(FString Page, FString VarName);
 
 	static bool ParseJson(FString SerializedJson, TSharedPtr<FJsonValue>& JsonArray);
 
-	static FString DeHTML(FString String);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static FString DeHTML(FString String);
 	
 };

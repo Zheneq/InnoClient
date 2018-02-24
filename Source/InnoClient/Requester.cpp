@@ -128,3 +128,77 @@ void URequester::LightRequestResponse(FHttpRequestPtr Req, FHttpResponsePtr Resp
 	}
 }
 
+bool URequester::GetPage(const FHttpResponseDelegate& OnResponseCallback, FString Page)
+{
+	if (CurrentGetPageRequest.IsValid())
+	{
+		return false;
+	}
+
+	FHttpRequestPtr Request = Http->CreateRequest();
+	Request->OnProcessRequestComplete().BindUObject(this, &URequester::GetPageResponse);
+	OnGetPageResponse = OnResponseCallback;
+	//This is the url on which to process the request
+	Request->SetURL(FString::Printf(TEXT("https://innovation.isotropic.org/%s"), *Page));
+	Request->SetVerb(TEXT("GET"));
+	// Request->SetContentAsString();
+	Request->SetHeader(L"Host", L"innovation.isotropic.org");
+	//	Request->SetHeader(L"User-Agent", L"X-UnrealEngine-Agent");
+	Request->SetHeader(L"User-Agent", L"Mozilla / 5.0 (Windows NT 6.1; WOW64; rv:53.0) Gecko / 20100101 Firefox / 53.0");
+	//	Request->SetHeader(L"Content-Type", L"application/json");
+	//Request->SetHeader(L"Accept-Encoding", L"gzip, deflate, br");
+	//Request->SetHeader(L"Accept-Language", L"en-US,en;q=0.5");
+	//Request->SetHeader(L"Accept", L"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	Request->SetHeader(L"Connection", L"keep-alive");
+	// Request->SetHeader(L"Content-Type", L"application/x-www-form-urlencoded");
+	//	Request->SetHeader(L"Referer", LastURL);
+	//	LastURL = Request->GetURL();
+	//	Request->SetHeader(L"Cookie", PlayerCookie);
+	
+	UE_LOG(LogTemp, Log, TEXT("Get Page Request: %s"), *Request->GetURL());
+	auto headers = Request->GetAllHeaders();
+	for (const auto& h : headers)
+	{
+		// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.f, FColor::Red, h);
+		UE_LOG(LogTemp, Log, TEXT("Request header: %s"), *h);
+	}
+
+	CurrentGetPageRequest = Request;
+	return Request->ProcessRequest();
+}
+
+void URequester::GetPageResponse(FHttpRequestPtr Req, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (CurrentGetPageRequest.Pin() != Req)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Unexpected response for: %s"), *Req->GetURL());
+		return;
+	}
+
+	CurrentGetPageRequest.Reset();
+	FHttpResponseDelegate Callback = OnGetPageResponse;
+	OnGetPageResponse.Clear();
+
+	if (bWasSuccessful)
+	{
+
+		UE_LOG(LogTemp, Log, TEXT("ResponseBP: %d"), Response->GetResponseCode());
+		auto headers = Response->GetAllHeaders();
+		for (const auto& h : headers)
+		{
+			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.f, FColor::Red, h);
+			UE_LOG(LogTemp, Log, TEXT("Response header: %s"), *h);
+		}
+
+		FString ContentAsString = Response->GetContentAsString();
+
+		UE_LOG(LogTemp, Log, TEXT("Response content: %s"), *ContentAsString);
+		Callback.ExecuteIfBound(Response->GetResponseCode(), ContentAsString, bWasSuccessful);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("No response"));
+		Callback.ExecuteIfBound(0, TEXT(""), bWasSuccessful);
+	}
+}
+

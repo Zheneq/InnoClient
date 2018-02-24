@@ -55,25 +55,27 @@ struct FInnoCard
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		int32 Age;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		EInnoColor Color;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		FText Name;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		TArray<EInnoResource> Icons;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		EInnoResource DogmaResource;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		TArray<FText> Dogmas;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		TArray<FText> Echoes;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		TArray<FText> Inspire;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		FText Karma;
-	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
+		FText Text;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		int32 Set;
 
 	FInnoCard() : Age(-1), Set(-1), Color(EInnoColor::IC_None), DogmaResource(EInnoResource::IR_Hex) {}
@@ -84,7 +86,7 @@ struct FInnoCardRaw
 {
 	GENERATED_BODY()
 
-		UPROPERTY(BlueprintReadOnly, Category = "Inno")
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
 		int32 Age;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno")
 		FString Color;
@@ -122,22 +124,35 @@ class INNOCLIENT_API UInnoCards : public UObject
 {
 	GENERATED_BODY()
 
+private:
+	FString Hash;
 	TArray<FInnoCard> Cards;
 
-	const static FInnoCard CardNone;
+	bool Load();
+	bool Save() const;
 
-	FInnoCard ConvertCard(const FInnoCardRaw& RawCard) const;
+	bool bLoaded; // if loaded from disk or updated with json
+	inline bool LoadIfNeeded()
+	{
+		if (!bLoaded)
+			return Load();
+		return true;
+	}
 
-	EInnoColor ColorFromString(FString String) const;
-
-	EInnoResource ResourceFromString(FString String) const;
+	FInnoCard ConvertCard(const FInnoCardRaw& RawCard, int32 Index) const;
 
 public:
+	UInnoCards();
+
+	const static FString CardInfoPath;
+	const static FString CardInfoName;
+	const static FInnoCard CardNone;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
-		const FInnoCard& GetCard(int32 Index) const;
+		const FInnoCard& GetCard(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "Inno")
-		void Load(const FString& CardsJson);
+		void Update(const FString& CardsJson);
 	
 	
 };

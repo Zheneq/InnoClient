@@ -4,6 +4,7 @@
 #include "InnoClient.h"
 #include "Requester.h"
 #include "InnoCards.h"
+#include "JsonObjectConverter.h"
 #include "InnoFunctionLibrary.h"
 
 // Sets default values
@@ -26,7 +27,7 @@ void AGMInno::BeginPlay()
 }
 
 
-bool AGMInno::InnoUpdate(FString JsonUpdate)
+bool AGMInno::InnoTick(FString JsonUpdate)
 {
 	TSharedPtr<FJsonValue> JsonArray;
 	if (UInnoFunctionLibrary::ParseJson(JsonUpdate, JsonArray))
@@ -63,11 +64,27 @@ bool AGMInno::InnoUpdate(FString JsonUpdate)
 			{
 				InnoCardInfo(Object);
 			}
+			else if (Command == TEXT("player_count"))
+			{
+				InnoPlayerCount(Object);
+			}
+			else if (Command == TEXT("game_setup"))
+			{
+				InnoGameSetup(Object);
+			}
+			else if (Command == TEXT("supply"))
+			{
+				InnoSupply(Object);
+			}
+			else if (Command == TEXT("update"))
+			{
+				InnoUpdate(Object);
+			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdate: Unknown command: %s."), *Command);
+				UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoTick: Unknown command: %s."), *Command);
 			}
-
+			
 		}
 	}
 	else
@@ -125,7 +142,7 @@ void AGMInno::InnoShowLobby(const TSharedPtr<FJsonObject> Object)
 					(*Player)[2]->AsBool(),
 					(*Player)[3]->AsString(),
 					(*Player)[4]->AsBool(),
-					(*Player)[5]->AsString(), // ??
+					FString(), //(*Player)[5]->AsString(), // ??
 					(*Player)[6]->AsString()
 				);
 			}
@@ -146,13 +163,22 @@ void AGMInno::InnoCardInfo(const TSharedPtr<FJsonObject> Object)
 
 	if (Object->TryGetStringField(TEXT("url"), Url))
 	{
-		Inno_Cards.Broadcast(Url);
+		if (Url != CardsUrl)
+		{
+			CardsUrl = Url;
+			Inno_Cards.Broadcast(Url);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("AGMInno::InnoCardInfo: Up to date. (%s)"), *CardsUrl);
+		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoCardInfo: Unsupported parameters."));
 	}
 }
+
 
 void AGMInno::InnoPlayerCount(const TSharedPtr<FJsonObject> Object)
 {
@@ -161,6 +187,7 @@ void AGMInno::InnoPlayerCount(const TSharedPtr<FJsonObject> Object)
 
 	if (Object->TryGetNumberField(TEXT("player_count"), PlayerCount))
 	{
+		PlayerNum = PlayerCount;
 		Inno_PlayerCount.Broadcast(PlayerCount);
 	}
 	else
@@ -171,22 +198,109 @@ void AGMInno::InnoPlayerCount(const TSharedPtr<FJsonObject> Object)
 
 void AGMInno::InnoGameSetup(const TSharedPtr<FJsonObject> Object)
 {
-	int32 PlayerCount, AchievementTarget;
-	bool bEchoes, bFigures, bCities;
+	int32 PlayerCount = 0, AchievementTarget = 0;
+	bool bEchoes = false, bFigures = false, bCities = false;
 
 	check(Object.IsValid());
 
-	if (Object->TryGetNumberField(TEXT("player_count"),       PlayerCount) &&
+	if (Object->TryGetNumberField(TEXT("player_count"), PlayerCount) &&
 		Object->TryGetNumberField(TEXT("achievement_target"), AchievementTarget) &&
-		Object->TryGetBoolField(TEXT("show_echoes"),          bEchoes) &&
-		Object->TryGetBoolField(TEXT("show_figures"),         bFigures) &&
-		Object->TryGetBoolField(TEXT("show_cities"),          bCities))
+		Object->TryGetBoolField(TEXT("show_echoes"), bEchoes) &&
+		Object->TryGetBoolField(TEXT("show_figures"), bFigures) &&
+		Object->TryGetBoolField(TEXT("show_cities"), bCities))
 	{
+		PlayerNum = PlayerCount;
 		Inno_GameSetup.Broadcast(PlayerCount, AchievementTarget, bEchoes, bFigures, bCities);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoGameSetup: Unsupported parameters."));
+	}
+}
+
+void AGMInno::InnoSupply(const TSharedPtr<FJsonObject> Object)
+{
+	check(Object.IsValid());
+
+	const TSharedPtr<FJsonObject>* State = nullptr;
+	if (Object->TryGetObjectField(TEXT("state"), State))
+	{
+		const TArray< TSharedPtr<FJsonValue> > *Achievements = nullptr, *Piles = nullptr;
+		if (State->Get()->TryGetArrayField(TEXT("ach"), Achievements) &&
+			State->Get()->TryGetArrayField(TEXT("piles"), Piles))
+		{
+			TArray<int32> _ach, _pil;
+
+			for (const auto& a : *Achievements)
+			{
+				_ach.Add(a.Get()->AsNumber());
+			}
+			for (const auto& p : *Piles)
+			{
+				_pil.Add(p.Get()->AsNumber());
+			}
+
+			Inno_Supply.Broadcast(_ach, _pil);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoSupply: Unsupported parameters."));
+		}
+	}
+}
+
+void AGMInno::InnoUpdate(const TSharedPtr<FJsonObject> Object)
+{
+	check(Object.IsValid());
+
+	const TSharedPtr<FJsonObject>* Update = nullptr;
+	if (Object->TryGetObjectField(TEXT("update"), Update))
+	{
+		InnoUpdatePlayer(*Update, -1);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdate: Unsupported parameters."));
+	}
+}
+
+void AGMInno::InnoUpdatePlayer(const TSharedPtr<FJsonObject> Object, int32 Id)
+{
+	check(Object.IsValid());
+
+	FInnoPlayerInfo PlayerInfo;
+	if (FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &PlayerInfo))
+	{
+		if (Id == -1) // it is me
+		{
+			const TSharedPtr<FJsonObject>* OpponentUpdate = nullptr;
+			if (Object->TryGetObjectField(TEXT("opp"), OpponentUpdate))
+			{
+				const TSharedPtr<FJsonObject>* Opponent = nullptr;
+				for (int32 i = 0; i < PlayerNum - 1; ++i)
+				{
+					const FString OpponentId = FString::FromInt(i);
+					if (OpponentUpdate->Get()->TryGetObjectField(OpponentId, Opponent))
+					{
+						InnoUpdatePlayer(*Opponent, i);
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdatePlayer: Incorrect opponent."));
+					}
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdatePlayer: No opponents."));
+			}
+		}
+
+		Inno_UpdatePlayer.Broadcast(Id, PlayerInfo);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdatePlayer: Unsupported parameters."));
 	}
 }
 

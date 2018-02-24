@@ -72,7 +72,7 @@ void SInnoDogmaWidget::ParseText(const TAttribute<const FText*>& InText)
 	// Note: If the string starts with a delimiter, it will be omitted
 
 	// InText.Get()->ToString().ParseIntoArrayWS(Words);
-	const auto InString = InText.Get()->ToString().Replace(TEXT("\n"), TEXT(" ")).Replace(TEXT("\t"), TEXT(" ")).Replace(TEXT("\r"), TEXT(""));
+	const auto InString = InText.Get()->ToString();//.Replace(TEXT("\n"), TEXT(" ")).Replace(TEXT("\t"), TEXT(" ")).Replace(TEXT("\r"), TEXT("")).Replace(TEXT("."), TEXT(". "));
 
 	static const TCHAR* DelimArray[] =
 	{
@@ -82,6 +82,8 @@ void SInnoDogmaWidget::ParseText(const TAttribute<const FText*>& InText)
 		TEXT("."),
 		TEXT(","),
 		TEXT(";"),
+		TEXT("("),
+		TEXT(")"),
 	};
 
 	// start with just the standard whitespaces

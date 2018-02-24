@@ -2,7 +2,49 @@
 
 #include "InnoFunctionLibrary.h"
 #include "InnoClient.h"
+#include "GIInno.h"
+#include "GMInno.h"
+#include "InnoCardData.h"
 
+
+EInnoColor UInnoFunctionLibrary::ColorFromString(const UObject* WorldContextObject, FString String)
+{
+	auto World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
+	UGIInno* GI = World ? Cast<UGIInno>(World->GetGameInstance()) : nullptr;
+
+	return (GI && GI->ColorFromString.Contains(String)) ? GI->ColorFromString[String] : EInnoColor::IC_None;
+}
+
+EInnoResource UInnoFunctionLibrary::ResourceFromString(const UObject* WorldContextObject, FString String)
+{
+	auto World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
+	UGIInno* GI = World ? Cast<UGIInno>(World->GetGameInstance()) : nullptr;
+
+	return (GI && GI->ResourceFromString.Contains(String)) ? GI->ResourceFromString[String] : EInnoResource::IR_Hex;
+}
+
+const FInnoCard& UInnoFunctionLibrary::GetCard(const UObject* WorldContextObject, int32 Index)
+{
+	auto World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
+	AGMInno* GM = World ? Cast<AGMInno>(World->GetAuthGameMode()) : nullptr;
+
+	if (GM)
+	{
+		return GM->Cards->GetCard(Index);
+	}
+
+#ifdef WITH_EDITOR
+	// No gamemode, fall back to data asset
+	UInnoCardData* MyAsset = Cast<UInnoCardData>(FStringAssetReference(UInnoCards::CardInfoPath).TryLoad());
+
+	if (MyAsset && MyAsset->Cards.IsValidIndex(Index))
+	{
+		return MyAsset->Cards[Index];
+	}
+#endif // WITH_EDITOR
+
+	return UInnoCards::CardNone;
+}
 
 FString UInnoFunctionLibrary::GetInlineScriptVar(FString Page, FString VarName)
 {
@@ -73,7 +115,16 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 		}
 		else
 		{
-			return String;
+			break;
 		}
 	}
+
+	// Clean the string
+	String.ReplaceInline(TEXT("."), TEXT(". "));
+	String.ReplaceInline(TEXT("\n"), TEXT(" "));
+	String.ReplaceInline(TEXT("\r"), TEXT(" "));
+	String.ReplaceInline(TEXT("\t"), TEXT(" "));
+	while (String.ReplaceInline(TEXT("  "), TEXT(" ")));
+
+	return String;
 }
