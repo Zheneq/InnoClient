@@ -80,6 +80,7 @@ void SInnoDogmaWidget::ParseText(const TAttribute<const FText*>& InText)
 		TEXT("\t"),
 		TEXT(":"),
 		TEXT("."),
+		TEXT("!"),
 		TEXT(","),
 		TEXT(";"),
 		TEXT("("),
@@ -160,6 +161,7 @@ void SInnoDogmaWidget::SetText(const TAttribute<const FText*>& InText)
 {
 	ParseText(InText);
 
+	/*
 	FString DebugString(TEXT("["));
 	for (const auto& w : Words)
 	{
@@ -167,6 +169,7 @@ void SInnoDogmaWidget::SetText(const TAttribute<const FText*>& InText)
 	}
 	DebugString.Append(TEXT("]"));
 	UE_LOG(LogTemp, Log, TEXT("%s"), *DebugString);
+	*/
 
 	RebuildWidget();
 }
