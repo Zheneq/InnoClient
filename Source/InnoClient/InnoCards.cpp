@@ -71,6 +71,11 @@ const FInnoCard& UInnoCards::GetCard(int32 Index)
 	}
 }
 
+const TArray<FInnoCard>& UInnoCards::GetCards()
+{
+	return Cards;
+}
+
 void UInnoCards::Update(const FString& CardsJson)
 {
 	const FString NewHash = FMD5::HashAnsiString(*CardsJson);

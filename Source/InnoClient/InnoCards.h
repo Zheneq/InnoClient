@@ -154,6 +154,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inno")
 		void Update(const FString& CardsJson);
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		const TArray<FInnoCard>& GetCards();
 	
 };
 
