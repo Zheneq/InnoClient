@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
-#include "SInnoDogmaWidget.h"
+#include "Widgets/Slate/SInnoDogmaWidget.h"
 #include "InnoDogma.generated.h"
 
 /**

@@ -1,8 +1,8 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 
 #include "SInnoDogmaWidget.h"
-#include "InnoWidgetStyles.h"
-#include "InnoDogmaStyle.h"
+#include "Widgets/Styles/InnoWidgetStyles.h"
+#include "Widgets/Styles/InnoDogmaStyle.h"
 #include "InnoClient.h"
 #include "Engine.h"
 
