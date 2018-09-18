@@ -6,9 +6,11 @@
 UInnoCardView::UInnoCardView(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	SInnoCardViewPanel::FArguments Defaults;
+
 	bIsVariable = true;
-	Orientation = EOrientation::Orient_Vertical;
-	bAnimateScroll = true;
+	Orientation = Defaults._Orientation;
+	bAnimateScroll = Defaults._bAnimateScroll;
 
 	DefaultSelection = 0;
 	bDefaultSelected = true;

@@ -37,7 +37,9 @@ public:
 
 public:
 
-	SLATE_BEGIN_ARGS(SInnoCardViewPanel)
+	SLATE_BEGIN_ARGS(SInnoCardViewPanel):
+		_Orientation(EOrientation::Orient_Vertical),
+		_bAnimateScroll(true)
 	{
 		_Visibility = EVisibility::SelfHitTestInvisible;
 	}
