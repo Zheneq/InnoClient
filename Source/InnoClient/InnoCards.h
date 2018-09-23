@@ -47,6 +47,7 @@ enum class EInnoResource : uint8
 	IR_Bonus10	 	UMETA(DisplayName = "Bonus-10"),
 	IR_Bonus11	 	UMETA(DisplayName = "Bonus-11"),
 	IR_Bonus12	 	UMETA(DisplayName = "Bonus-12"),
+	IR_HexNote	 	UMETA(DisplayName = "Hex Note"),
 };
 
 
