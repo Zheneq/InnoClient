@@ -2,7 +2,7 @@
 
 #include "InnoCardViewWidgetStyle.h"
 
-const FName FInnoCardViewStyle::TypeName = TEXT("FGlobalStyle");
+const FName FInnoCardViewStyle::TypeName = TEXT("FInnoCardViewStyle");
 
 UFInnoCardViewStyleContainer::UFInnoCardViewStyleContainer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

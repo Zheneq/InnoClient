@@ -25,11 +25,10 @@ void FInnoDogmaStyle::GetResources(TArray<const FSlateBrush*>& OutBrushes) const
 	}
 }
 
-const FName FInnoDogmaStyle::TypeName = TEXT("FGlobalStyle");
+const FName FInnoDogmaStyle::TypeName = TEXT("FInnoDogmaStyle");
 
 const FName FInnoDogmaStyle::GetTypeName() const
 {
-	static const FName TypeName = TEXT("FGlobalStyle");
 	return TypeName;
 }
 
