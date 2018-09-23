@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Widget")
 		bool bAnimateScroll;
 
+	UPROPERTY(EditAnywhere, Category = "Widget")
+		class USlateWidgetStyleAsset* StyleOverride;
+
 	UFUNCTION(BlueprintCallable, Category = "Widget")
 		void Select(int32 Index);
 

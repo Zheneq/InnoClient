@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InnoCardView.h"
+#include "Widgets/Styles/InnoCardViewWidgetStyle.h"
 #include "InnoCardViewSlot.h"
 
 UInnoCardView::UInnoCardView(const FObjectInitializer& ObjectInitializer)
@@ -11,6 +12,7 @@ UInnoCardView::UInnoCardView(const FObjectInitializer& ObjectInitializer)
 	bIsVariable = true;
 	Orientation = Defaults._Orientation;
 	bAnimateScroll = Defaults._bAnimateScroll;
+	StyleOverride = nullptr;
 
 	DefaultSelection = 0;
 	bDefaultSelected = true;
@@ -27,6 +29,7 @@ void UInnoCardView::SynchronizeProperties()
 	{
 		MyInnoCardViewPanel->SetOrientation(Orientation);
 		MyInnoCardViewPanel->bAnimateScroll = bAnimateScroll;
+		MyInnoCardViewPanel->SetStyle(IsValid(StyleOverride) ? StyleOverride->GetStyleChecked<FInnoCardViewStyle>(): nullptr);
 	}
 
 }
