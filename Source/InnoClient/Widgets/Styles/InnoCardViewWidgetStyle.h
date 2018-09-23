@@ -56,9 +56,13 @@ public:
 		FInnoCardViewStyle Style;
 
 	// Retrievs the style that this container manages. 
-	virtual const struct FSlateWidgetStyle* const GetStyle() const override
+	//virtual const struct FSlateWidgetStyle* const GetStyle() const override
+	//{
+	//	return static_cast<const struct FSlateWidgetStyle*>(&Style);
+	//}
+	virtual const FInnoCardViewStyle* const GetStyle() const override
 	{
-		return static_cast<const struct FSlateWidgetStyle*>(&Style);
+		return &Style;
 	}
 
 };

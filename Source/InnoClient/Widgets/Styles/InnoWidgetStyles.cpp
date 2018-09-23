@@ -1,4 +1,6 @@
 #include "InnoWidgetStyles.h"
+#include "InlineTextImageStyle.h"
+#include "Engine/DataAsset.h"
 #include "InnoClient.h"
 #include "SlateGameResources.h" 
 
@@ -26,13 +28,24 @@ FName FInnoWidgetStyles::GetStyleSetName()
 	return StyleSetName;
 }
 
-TSharedRef<FSlateStyleSet> FInnoWidgetStyles::Create()
-{
-	TSharedRef<FSlateStyleSet> StyleRef = FSlateGameResources::New(FInnoWidgetStyles::GetStyleSetName(), "/Game/UI/Styles", "/Game/UI/Styles");
-	return StyleRef;
-}
-
 const ISlateStyle& FInnoWidgetStyles::Get()
 {
 	return *StyleInstance;
+}
+
+TSharedRef<FSlateStyleSet> FInnoWidgetStyles::Create()
+{
+	TSharedRef<FSlateStyleSet> Style = FSlateGameResources::New(FInnoWidgetStyles::GetStyleSetName(), "/Game/UI/Styles", "/Game/UI/Styles");
+	// StyleRef->SetContentRoot( FPaths::EngineContentDir() / TEXT("Slate") );
+
+	UInnoInlineIcons* Asset = LoadObject<UInnoInlineIcons>(nullptr, TEXT("/Game/UI/Styles/InlineIcons.InlineIcons"));
+	if (Asset)
+	{
+		for (const auto& S : Asset->InlineIcons)
+		{
+			Style->Set(S.Key, S.Value);
+		}
+	}
+
+	return Style;
 }
