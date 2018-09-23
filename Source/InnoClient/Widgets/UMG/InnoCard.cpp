@@ -27,6 +27,12 @@ TSharedRef<SWidget> UInnoCardWidget::RebuildWidget()
 	return MyCard.ToSharedRef();
 }
 
+void UInnoCardWidget::SetCardId(int32 InCardId)
+{
+	CardId = InCardId;
+	SynchronizeProperties();
+}
+
 const FText UInnoCardWidget::GetPaletteCategory()
 {
 	return NSLOCTEXT("UMG", "Innovation", "Innovation");

@@ -21,6 +21,9 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		int32 CardId;
+
+	UFUNCTION(BLueprintCallable, Category = "Inno")
+		void SetCardId(int32 InCardId);
 	
 	UInnoCardWidget() : CardId(0) {}
 public:
