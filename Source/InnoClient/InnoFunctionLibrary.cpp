@@ -84,16 +84,16 @@ bool UInnoFunctionLibrary::ParseJson(FString SerializedJson, TSharedPtr<FJsonVal
 
 FString UInnoFunctionLibrary::DeHTML(FString String)
 {
-	int32 start, end;
+	int32 start = 0, end;
 
 	// Replace age tags
-	String.ReplaceInline(TEXT("<span class=age>"), TEXT("["));
+	String.ReplaceInline(TEXT("<span class=age>"), TEXT("[Age"));
 	String.ReplaceInline(TEXT("</span>"), TEXT("]"));
 
 	// Replace resource icon tags
 	while (true)
 	{
-		String.FindChar('<', start);
+		start = String.Find(TEXT("<"), ESearchCase::IgnoreCase, ESearchDir::FromStart, start);
 		end = String.Find(TEXT(">"), ESearchCase::IgnoreCase, ESearchDir::FromStart, start);
 
 		if (start != INDEX_NONE && end != INDEX_NONE)
@@ -101,17 +101,20 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 			const int32 len = end - start + 1;
 
 			FString TagToRemove = String.Mid(start, len);
+			String.RemoveAt(start, len);
 
 			// If the tag contains a resource picture
 			const FString InlinePicLeft = TEXT("<img src=\"/static/icons/inline-");
 			const FString InlinePicRight = TEXT(".png\">");
 			if (TagToRemove.StartsWith(InlinePicLeft) && TagToRemove.EndsWith(InlinePicRight))
 			{
+
 				FString Replace = FString::Printf(TEXT("[%s]"), *TagToRemove.Mid(InlinePicLeft.Len(), TagToRemove.Len() - InlinePicRight.Len() - InlinePicLeft.Len()));
-				String.InsertAt(end + 1, Replace);
+				String.InsertAt(start, Replace);
+
+				start += Replace.Len();
 			}
 
-			String.RemoveAt(start, len);
 		}
 		else
 		{
@@ -119,7 +122,11 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 		}
 	}
 
+	String.ReplaceInline(TEXT("["), TEXT("<img src=\""));
+	String.ReplaceInline(TEXT("]"), TEXT("\"/>"));
+
 	// Clean the string
+	String.ReplaceInline(TEXT("&mdash;"), TEXT("~"));
 	String.ReplaceInline(TEXT("."), TEXT(". "));
 	String.ReplaceInline(TEXT("\n"), TEXT(" "));
 	String.ReplaceInline(TEXT("\r"), TEXT(" "));
