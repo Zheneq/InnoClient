@@ -16,7 +16,7 @@ const FString UInnoCards::CardInfoName = TEXT("CardsData");
 UInnoCards::UInnoCards()
 {
 	bLoaded = false;
-	// Load(); // will it ever succeed?
+	Load();
 }
 
 bool UInnoCards::Load()
@@ -28,8 +28,14 @@ bool UInnoCards::Load()
 		Hash = MyAsset->Hash;
 		Cards = MyAsset->Cards;
 		bLoaded = true;
+
+
+		UE_LOG(LogInno, Log, TEXT("UInnoCards::Load: Successfully loaded cards."));
+
 		return true;
 	}
+
+	UE_LOG(LogInno, Warning, TEXT("UInnoCards::Load: Failed to load cards."));
 	return false;
 }
 
