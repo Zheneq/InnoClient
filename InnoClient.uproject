@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.18",
+	"EngineAssociation": "4.20",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -10,13 +10,22 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"UMG"
+				"UMG",
+				"CoreUObject"
 			]
 		}
 	],
 	"Plugins": [
 		{
 			"Name": "HoudiniEngine",
+			"Enabled": false
+		},
+		{
+			"Name": "OculusVR",
+			"Enabled": false
+		},
+		{
+			"Name": "SteamVR",
 			"Enabled": false
 		}
 	]
