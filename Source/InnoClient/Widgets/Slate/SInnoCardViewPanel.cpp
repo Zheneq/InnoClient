@@ -20,9 +20,11 @@ void SInnoCardViewPanel::Construct(const FArguments& InArgs, const TArray<SInnoC
 
 void SInnoCardViewPanel::Construct(const FArguments& InArgs)
 {
+	DefaultStyle = &FInnoWidgetStyles::Get().GetWidgetStyle<FInnoCardViewStyle>("Style_InnoCardView");
+
 	Orientation = InArgs._Orientation;
 	bAnimateScroll = InArgs._bAnimateScroll;
-	Style = &FInnoWidgetStyles::Get().GetWidgetStyle<FInnoCardViewStyle>("Style_InnoCardView");
+	SetStyle(InArgs._StyleOverride);
 
 	SelectedIndex = 0;
 	CurrentScroll = 0.f;

@@ -39,13 +39,15 @@ public:
 
 	SLATE_BEGIN_ARGS(SInnoCardViewPanel):
 		_Orientation(EOrientation::Orient_Vertical),
-		_bAnimateScroll(true)
+		_bAnimateScroll(true),
+		_StyleOverride(nullptr)
 	{
 		_Visibility = EVisibility::SelfHitTestInvisible;
 	}
 	SLATE_SUPPORTS_SLOT(FSlot)
 	SLATE_ARGUMENT(EOrientation, Orientation)
 	SLATE_ARGUMENT(bool, bAnimateScroll)
+	SLATE_ARGUMENT(const struct FInnoCardViewStyle*, StyleOverride)
 	SLATE_END_ARGS()
 
 	SInnoCardViewPanel():
@@ -101,6 +103,19 @@ public:
 
 	/**  */
 	bool bAnimateScroll;
+
+	/**  */
+	void SetStyle(const struct FInnoCardViewStyle* StyleOverride)
+	{
+		if (StyleOverride)
+		{
+			Style = StyleOverride;
+		}
+		else
+		{
+			Style = DefaultStyle;
+		}
+	}
 
 public:
 
@@ -175,7 +190,11 @@ public:
 
 	TSharedPtr<class SCardViewPanel> Panel;
 
+	// Style in use
 	const struct FInnoCardViewStyle* Style;
+
+	// Style to fall back to
+	const struct FInnoCardViewStyle* DefaultStyle;
 
 	void SetSelectedIndex(int32 Index);
 };
