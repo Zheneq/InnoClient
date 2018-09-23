@@ -2,7 +2,7 @@
 
 #include "InnoClient.h"
 #include "Modules/ModuleManager.h"
-#include "Widgets/InnoWidgetStyles.h" 
+#include "Widgets/Styles/InnoWidgetStyles.h" 
 
 //Custom implementation of the Default Game Module. 
 class FInnoGameModuleImpl : public FDefaultGameModuleImpl
@@ -26,3 +26,5 @@ class FInnoGameModuleImpl : public FDefaultGameModuleImpl
 };
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FInnoGameModuleImpl, InnoClient, "InnoClient" );
+
+DEFINE_LOG_CATEGORY(LogInno);
