@@ -6,7 +6,6 @@
 #include "SlateExtras.h"
 #include "InnoCards.h"
 #include "GIInno.h"
-#include "Widgets/Other/InnoRichTextBlockImageDecorator.h"
 #include "InnoClient.h"
 #include "Engine.h"
 
@@ -58,9 +57,9 @@ void SInnoCard::Construct(const FArguments& InArgs)
 			[
 				SNew(SButton)
 				.ButtonStyle(&Style->ButtonStyle)
-				.OnClicked(this, &SInnoCard::OnClicked)
-				.OnHovered(this, &SInnoCard::OnHovered)
-				.OnUnhovered(this, &SInnoCard::OnUnhovered)
+				.OnClicked(this, &SInnoCard::OnClickedHandle)
+				.OnHovered(this, &SInnoCard::OnHoveredHandle)
+				.OnUnhovered(this, &SInnoCard::OnUnhoveredHandle)
 				.ClickMethod(EButtonClickMethod::PreciseClick)
 				.TouchMethod(EButtonTouchMethod::PreciseTap)
 				.ContentPadding(FMargin(0))

@@ -87,10 +87,19 @@ public:
 	const FSlateBrush* BackgroundColorBrush(EInnoColor Color) const;
 	const FSlateBrush* AgeBackgroundColorBrush(int32 Set) const;
 
+private:
+	FReply OnClickedHandle() { return OnClicked.IsBound() ? OnClicked.Execute() : FReply::Handled(); }
+
+	void OnHoveredHandle() { if (OnHovered.IsBound()) OnHovered.Execute(); }
+
+	void OnUnhoveredHandle() { if (OnUnhovered.IsBound()) OnUnhovered.Execute(); }
+
 public:
-	FReply OnClicked() { return FReply::Unhandled(); }
 
-	void OnHovered() {}
+	/** The delegate to execute when the button is clicked */
+	FOnClicked OnClicked;
 
-	void OnUnhovered() {}
+	FSimpleDelegate OnHovered;
+
+	FSimpleDelegate OnUnhovered;
 };
