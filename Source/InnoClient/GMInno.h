@@ -4,8 +4,18 @@
 
 #include "GameFramework/GameMode.h"
 #include "Requester.h"
+#include "JsonObjectConverter.h"
 #include "GMInno.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EInnoSplay : uint8
+{
+	IPA_None	= 0		UMETA(DisplayName = "No splay"),
+	IPA_Left	= 1		UMETA(DisplayName = "Splay left"),
+	IPA_Right	= 2		UMETA(DisplayName = "Splay right"),
+	IPA_Up		= 3		UMETA(DisplayName = "Splay up"),
+};
 
 USTRUCT(BlueprintType)
 struct FInnoPlayerPileInfo
@@ -16,8 +26,35 @@ struct FInnoPlayerPileInfo
 		FString Color;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Cards"))
 		TArray<int32> Num;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Splay-revealed resources", ToolTip = "Range. [0] is first resource visible, [1] is first resource hidden."))
+		TArray<int32> Splay;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Warning"))
 		bool q;
+};
+
+USTRUCT(BlueprintType)
+struct FInnoPlayerInfoIcons
+{
+	GENERATED_BODY()
+		
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Castle;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Leaf;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Lightbulb;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Crown;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Factory;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Clock;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Hex;
+
+	FInnoPlayerInfoIcons() :
+		Castle(-1), Leaf(-1), Lightbulb(-1), Crown(-1), Factory(-1), Clock(-1), Hex(-1)
+	{}
 };
 
 USTRUCT(BlueprintType)
@@ -29,6 +66,8 @@ struct FInnoPlayerInfo
 		FString Name;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Board"))
 		TArray<FInnoPlayerPileInfo> Board;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Icons"))
+		FInnoPlayerInfoIcons Icons;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Hand"))
 		TArray<int32> Hand;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Forecast"))
@@ -45,6 +84,33 @@ struct FInnoPlayerInfo
 		int32 Order;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Extra achievements"))
 		TArray<int32> Extra_ach;
+
+	static bool JsonHasAnyField(const TSharedPtr<FJsonObject> Object)
+	{
+		return Object->HasField(TEXT("Name")) ||
+			Object->HasField(TEXT("Board")) ||
+			Object->HasField(TEXT("Icons")) ||
+			Object->HasField(TEXT("Hand")) ||
+			Object->HasField(TEXT("Forecast")) ||
+			Object->HasField(TEXT("Ach")) ||
+			Object->HasField(TEXT("Score")) ||
+			Object->HasField(TEXT("Bonus")) ||
+			Object->HasField(TEXT("Score_total")) ||
+			Object->HasField(TEXT("Order")) ||
+			Object->HasField(TEXT("Extra_ach"));
+	}
+};
+
+UENUM(BlueprintType)
+enum class EInnoPlayAction : uint8
+{
+	IPA_Draw		UMETA(DisplayName = "Draw"),
+	IPA_Meld		UMETA(DisplayName = "Meld"),
+	IPA_Dogma		UMETA(DisplayName = "Dogma"),
+	IPA_Achieve		UMETA(DisplayName = "Achieve"),
+	IPA_Inspire		UMETA(DisplayName = "Inspire"),
+	IPA_Decree		UMETA(DisplayName = "Decree"),
+	IPA_Endorse		UMETA(DisplayName = "Endorse"),
 };
 
 /**
@@ -80,6 +146,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "InnoLow")
 		FString BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) const;
+
+	UFUNCTION(BlueprintCallable, Category = "InnoLow")
+		FString BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm) const;
 
 
 	// Sets default values for this actor's properties
@@ -138,9 +207,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Inno")
 		FInnoDelegateChat Chat;
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInnoDelegateLog, const FString&, String, bool, bReplaceLastMessage);
+
 	// Message in log
 	UPROPERTY(BlueprintAssignable, Category = "Inno")
-		FLobbyDelegateString Log;
+		FInnoDelegateLog Log;
 
 	// PROMPTS
 	void InnoChoose(const TSharedPtr<FJsonObject> Object);
@@ -190,7 +261,7 @@ public:
 		FInnoDelegateGameSetup Inno_GameSetup;
 
 	// Supply
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInnoDelegateSupply, TArray<int32>, AvailableAchievements, TArray<int32>, Piles);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInnoDelegateSupply, const TArray<int32>&, AvailableAchievements, const TArray<int32>&, Piles);
 
 	void InnoSupply(const TSharedPtr<FJsonObject> Object);
 
@@ -198,6 +269,8 @@ public:
 		FInnoDelegateSupply Inno_Supply;
 
 	// Update
+	int32 LastUpdateId;
+
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInnoDelegateUpdatePlayer, int32, Id, FInnoPlayerInfo, PlayerInfo);
 
 	// Update everything on the table
@@ -208,4 +281,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Game")
 		FInnoDelegateUpdatePlayer Inno_UpdatePlayer;
+
+	// Update + Player expected to make their move
+	void InnoPlay(const TSharedPtr<FJsonObject> Object);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInnoDelegatePlay, int32, PlayId, int32, DrawDeck, const TArray<int32>&, Achs, const TArray<int32>&, Decree, const TArray<EInnoColor>&, Inspire, const TArray<EInnoColor>&, Endorse);
+	UPROPERTY(BlueprintAssignable, Category = "Game")
+		FInnoDelegatePlay Inno_Play;
 };

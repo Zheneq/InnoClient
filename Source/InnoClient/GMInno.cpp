@@ -4,7 +4,6 @@
 #include "InnoClient.h"
 #include "Requester.h"
 #include "InnoCards.h"
-#include "JsonObjectConverter.h"
 #include "InnoFunctionLibrary.h"
 
 // Sets default values
@@ -14,6 +13,7 @@ AGMInno::AGMInno()
 	Cards = nullptr;
 	PlayerName = TEXT("4356274");
 	PlayerPronoun = TEXT("M");
+	LastUpdateId = -1;
 	// PlayerCookie = TEXT("");
 }
 
@@ -30,9 +30,11 @@ void AGMInno::BeginPlay()
 bool AGMInno::InnoTick(FString JsonUpdate)
 {
 	TSharedPtr<FJsonValue> JsonArray;
-	if (UInnoFunctionLibrary::ParseJson(JsonUpdate, JsonArray))
+
+	if (UInnoFunctionLibrary::ParseJson(JsonUpdate, JsonArray) && JsonArray->AsArray().Num() >= 2)
 	{
 		LobbyLoopNextRequestId = JsonArray->AsArray()[0]->AsNumber();
+
 		for (const auto& _Object : JsonArray->AsArray()[1]->AsArray())
 		{
 			const TSharedPtr<FJsonObject> Object = _Object->AsObject();
@@ -78,7 +80,16 @@ bool AGMInno::InnoTick(FString JsonUpdate)
 			}
 			else if (Command == TEXT("update"))
 			{
+				// TODO: Defer updates till the end of the loop? Watch out for plays, they contain updates too
 				InnoUpdate(Object);
+			}
+			else if (Command == TEXT("play"))
+			{
+				InnoPlay(Object);
+			}
+			else if (Command == TEXT("ping"))
+			{
+				// do nothing, we respond to every signal
 			}
 			else
 			{
@@ -163,6 +174,7 @@ void AGMInno::InnoCardInfo(const TSharedPtr<FJsonObject> Object)
 
 	if (Object->TryGetStringField(TEXT("url"), Url))
 	{
+		// Url is supposed to change if card list is updated
 		if (Url != CardsUrl)
 		{
 			CardsUrl = Url;
@@ -178,7 +190,6 @@ void AGMInno::InnoCardInfo(const TSharedPtr<FJsonObject> Object)
 		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoCardInfo: Unsupported parameters."));
 	}
 }
-
 
 void AGMInno::InnoPlayerCount(const TSharedPtr<FJsonObject> Object)
 {
@@ -253,6 +264,14 @@ void AGMInno::InnoUpdate(const TSharedPtr<FJsonObject> Object)
 {
 	check(Object.IsValid());
 
+	int32 UpdateId = Object->GetIntegerField(TEXT("id"));
+	if (UpdateId < LastUpdateId)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdate: Outdated. Discarding."));
+		return;
+	}
+	LastUpdateId = UpdateId;
+
 	const TSharedPtr<FJsonObject>* Update = nullptr;
 	if (Object->TryGetObjectField(TEXT("update"), Update))
 	{
@@ -296,11 +315,69 @@ void AGMInno::InnoUpdatePlayer(const TSharedPtr<FJsonObject> Object, int32 Id)
 			}
 		}
 
-		Inno_UpdatePlayer.Broadcast(Id, PlayerInfo);
+		if (FInnoPlayerInfo::JsonHasAnyField(Object))
+		{
+			Inno_UpdatePlayer.Broadcast(Id, PlayerInfo);
+		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdatePlayer: Unsupported parameters."));
+	}
+}
+
+void AGMInno::InnoPlay(const TSharedPtr<FJsonObject> Object)
+{
+	check(Object.IsValid());
+
+	InnoUpdate(Object);
+
+	int32 PlayId = 0, DrawDeck = 0;
+	TArray<int32> Achs, Decree;
+	TArray<EInnoColor> Endorse, Inspire;
+
+	const TArray<TSharedPtr<FJsonValue>>* ArrayParam;
+
+	if (Object->TryGetArrayField(TEXT("achs"), ArrayParam))
+	{
+		for (const auto& ach : *ArrayParam)
+		{
+			Achs.Add(ach->AsNumber());
+		}
+	}
+
+	if (Object->TryGetArrayField(TEXT("decrees"), ArrayParam))
+	{
+		for (const auto& ach : *ArrayParam)
+		{
+			Decree.Add(ach->AsNumber());
+		}
+	}
+
+	if (Object->TryGetArrayField(TEXT("inspire"), ArrayParam))
+	{
+		for (const auto& ach : *ArrayParam)
+		{
+			Inspire.Add(UInnoFunctionLibrary::ColorFromString(this, ach->AsString()));
+		}
+	}
+
+	if (Object->TryGetArrayField(TEXT("endorse"), ArrayParam))
+	{
+		for (const auto& ach : *ArrayParam)
+		{
+			Endorse.Add(UInnoFunctionLibrary::ColorFromString(this, ach->AsString()));
+		}
+	}
+
+	if (Object->TryGetNumberField(TEXT("draw"), DrawDeck) &&
+		Object->TryGetNumberField(TEXT("id"), PlayId))
+	{
+		Inno_Play.Broadcast(PlayId, DrawDeck, Achs, Decree, Inspire, Endorse);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoPlay: Unsupported parameters."));
 	}
 }
 
@@ -344,6 +421,65 @@ FString AGMInno::BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) c
 }
 
 
+FString AGMInno::BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm) const
+{
+	FString StrAction, StrPayload;
+
+	switch (ColorParam)
+	{
+	case EInnoColor::IC_Red:
+		StrPayload = TEXT("\"red\"");
+		break;
+	case EInnoColor::IC_Green:
+		StrPayload = TEXT("\"green\"");
+		break;
+	case EInnoColor::IC_Blue:
+		StrPayload = TEXT("\"blue\"");
+		break;
+	case EInnoColor::IC_Yellow:
+		StrPayload = TEXT("\"yellow\"");
+		break;
+	case EInnoColor::IC_Purple:
+		StrPayload = TEXT("\"purple\"");
+		break;
+	}
+
+	switch (Action)
+	{
+	case EInnoPlayAction::IPA_Draw:
+		StrAction = TEXT("draw");
+		StrPayload = TEXT("null");
+		break;
+	case EInnoPlayAction::IPA_Meld:
+		StrAction = TEXT("meld");
+		StrPayload = FString::Printf(TEXT("%d"), IntParam);
+		break;
+	case EInnoPlayAction::IPA_Dogma:
+		StrAction = TEXT("dogma");
+		break;
+	case EInnoPlayAction::IPA_Achieve:
+		StrAction = TEXT("achieve");
+		StrPayload = FString::Printf(TEXT("%d"), IntParam);
+		break;
+	case EInnoPlayAction::IPA_Inspire:
+		StrAction = TEXT("inspire");
+		break;
+	case EInnoPlayAction::IPA_Decree:
+		StrAction = TEXT("decree");
+		StrPayload = FString::Printf(TEXT("%d"), IntParam);
+		break;
+	case EInnoPlayAction::IPA_Endorse:
+		StrAction = TEXT("endorse");
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("AGMInno::BuildPlayJson: Unsupported parameters."));
+	}
+
+	return FString::Printf(TEXT("{\"id\":%d,\"what\":\"%s\",\"extra\":%s,\"confirm\":false}"), RequestId, *StrAction, *StrPayload);
+
+}
+
+
 void AGMInno::InnoSay(const TSharedPtr<FJsonObject> Object)
 {
 	check(Object.IsValid());
@@ -358,6 +494,10 @@ void AGMInno::InnoSay(const TSharedPtr<FJsonObject> Object)
 		{
 			Chat.Broadcast(Object->GetIntegerField(TEXT("timestamp")), Object->GetStringField(TEXT("message")));
 		}
+		else if (String == TEXT("replace"))
+		{
+			Log.Broadcast(Object->GetStringField(TEXT("message")), true);
+		}
 		else if (String == TEXT("temp"))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoSay [Temp]: \"%s\"."), *Object->GetStringField(TEXT("message")));
@@ -369,7 +509,7 @@ void AGMInno::InnoSay(const TSharedPtr<FJsonObject> Object)
 	}
 	else
 	{
-		Log.Broadcast(Object->GetStringField(TEXT("message")));
+		Log.Broadcast(Object->GetStringField(TEXT("message")), false);
 	}
 }
 
