@@ -271,7 +271,7 @@ public:
 	// Update
 	int32 LastUpdateId;
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInnoDelegateUpdatePlayer, int32, Id, FInnoPlayerInfo, PlayerInfo);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInnoDelegateUpdatePlayer, int32, Id, const FInnoPlayerInfo&, PlayerInfo);
 
 	// Update everything on the table
 	void InnoUpdate(const TSharedPtr<FJsonObject> Object);
