@@ -22,6 +22,23 @@ public:
 
 protected:
 	FSlateBrush IconBrush;
+
+	TSharedPtr<SImage> Img;
+
+	bool bVisible;
+
+public:
+	EInnoResource Icon;
+
+	void SetVisible(bool bNewVisible)
+	{
+		bVisible = bNewVisible;
+
+		if (Img.IsValid())
+		{
+			Img->SetColorAndOpacity(bVisible ? FLinearColor::White : FLinearColor::Gray);
+		}
+	}
 };
 
 class INNOCLIENT_API SInnoCard : public SCompoundWidget
@@ -43,10 +60,18 @@ protected:
 	TSharedPtr<SBox> SizeBox;
 
 	// Card text, can be hidden
-	TSharedPtr<SVerticalBox> VBDetails;
+	// Echo/Inspire
+	TSharedPtr<SVerticalBox> VBIconEffects;
+
+	// Card text, can be hidden
+	// Dogma/Karma/Text
+	TSharedPtr<SVerticalBox> VBEffects;
 
 	// Card header, contains icons, card name and age
-	TSharedPtr<SHorizontalBox> HBHeader;
+	TSharedPtr<SBox> SBHeader;
+
+	// Resource icons
+	TArray<TSharedPtr<SInnoCardIcon>> ICIIcons;
 
 	// Colored card background
 	TSharedPtr<SBorder> BBackground;
@@ -63,6 +88,7 @@ protected:
 	// Grid panel for card icons
 	TSharedPtr<SGridPanel> GPIcons;
 
+	int32 CardId;
 
 
 private:
@@ -88,18 +114,92 @@ public:
 	const FSlateBrush* AgeBackgroundColorBrush(int32 Set) const;
 
 private:
-	FReply OnClickedHandle() { return OnClicked.IsBound() ? OnClicked.Execute() : FReply::Handled(); }
+	FReply OnClickedHandle() { return OnClicked.IsBound() ? OnClicked.Execute(CardId) : FReply::Handled(); }
 
-	void OnHoveredHandle() { if (OnHovered.IsBound()) OnHovered.Execute(); }
+	void OnHoveredHandle() { if (OnHovered.IsBound()) OnHovered.Execute(CardId); }
 
-	void OnUnhoveredHandle() { if (OnUnhovered.IsBound()) OnUnhovered.Execute(); }
+	void OnUnhoveredHandle() { if (OnUnhovered.IsBound()) OnUnhovered.Execute(CardId); }
 
 public:
+	
+	DECLARE_DELEGATE_RetVal_OneParam(FReply, FOnCardClicked, int32);
+
+	DECLARE_DELEGATE_OneParam(FOnCardSimple, int32);
 
 	/** The delegate to execute when the button is clicked */
-	FOnClicked OnClicked;
+	FOnCardClicked OnClicked;
 
-	FSimpleDelegate OnHovered;
+	FOnCardSimple OnHovered;
 
-	FSimpleDelegate OnUnhovered;
+	FOnCardSimple OnUnhovered;
+
+protected:
+	bool bRespectMinimalHeight;
+
+	bool bHideHeader;
+
+	bool bHideText;
+
+	bool bSelectiveHideText;
+
+
+public:
+	void SetRespectMinimalHeight(bool bNewRespectMinimalHeight)
+	{
+		bRespectMinimalHeight = bNewRespectMinimalHeight;
+		if (SizeBox.IsValid() && Style)
+		{
+			SizeBox->SetMinDesiredHeight(bRespectMinimalHeight ? Style->MinHeight : FOptionalSize());
+		}
+	}
+
+	void SetHideHeader(bool bNewHideHeader)
+	{
+		bHideHeader = bNewHideHeader;
+		if (SBHeader.IsValid())
+		{
+			SBHeader->SetVisibility(bHideHeader ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+		}
+	}
+
+	void SetHideText(bool bNewHideText)
+	{
+		bHideText = bNewHideText;
+		if (VBIconEffects.IsValid() && VBEffects.IsValid())
+		{
+			VBIconEffects->SetVisibility(bHideText ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+			VBEffects->SetVisibility(bHideText ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+		}
+	}
+
+	// Hide text unless it is visible in the stack. Call StackInvalidate in order for this to take effect.
+	void SetSelectiveHideText(bool bNewSelectiveHideText)
+	{
+		bSelectiveHideText = bNewSelectiveHideText;
+	}
+
+	// Call when stack has changed to grey/ungrey icons and to hide/reveal echoes and inspires.
+	void StackInvalidate(int32 SplayStart, int32 SplayEnd, bool bTopCard)
+	{
+
+		if (!bHideText && bSelectiveHideText)
+		{
+			bool bIconEffectVisible = false;
+
+			for (int32 i = 0; i < ICIIcons.Num(); ++i)
+			{
+				if (ICIIcons[i].IsValid())
+				{
+					const bool bVisible = bTopCard || (i >= SplayStart && i < SplayEnd);
+					ICIIcons[i]->SetVisible(bVisible);
+
+					bIconEffectVisible |= bVisible && (ICIIcons[i]->Icon == EInnoResource::IR_Echo || ICIIcons[i]->Icon == EInnoResource::IR_Inspire);
+				}
+
+			}
+
+			VBIconEffects->SetVisibility(bIconEffectVisible ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+			VBEffects->SetVisibility(bTopCard ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
+		}
+	}
 };

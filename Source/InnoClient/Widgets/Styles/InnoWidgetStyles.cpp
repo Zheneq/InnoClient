@@ -1,6 +1,7 @@
 #include "InnoWidgetStyles.h"
 #include "InlineTextImageStyle.h"
 #include "Engine/DataAsset.h"
+#include "EngineUtils.h"
 #include "InnoClient.h"
 #include "SlateGameResources.h" 
 
@@ -46,6 +47,18 @@ TSharedRef<FSlateStyleSet> FInnoWidgetStyles::Create()
 			Style->Set(S.Key, S.Value);
 		}
 	}
+
+	/*
+	TArray<UObject*> Icons;
+	EngineUtils::FindOrLoadAssetsByPath(TEXT("/Game/Images/Res/"), Icons, EngineUtils::ATL_Regular);
+	for (const UObject* Icon : Icons)
+	{
+		if (Icon->IsA<UTexture2D>())
+		{
+			// make brush
+		}
+	}
+	*/
 
 	return Style;
 }

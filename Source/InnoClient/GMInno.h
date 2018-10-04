@@ -7,6 +7,11 @@
 #include "JsonObjectConverter.h"
 #include "GMInno.generated.h"
 
+UENUM(BlueprintType)
+enum EInno
+{
+	LOCAL_PLAYER_ID = -1		UMETA(DisplayName = "Local Player ID")
+};
 
 UENUM(BlueprintType)
 enum class EInnoSplay : uint8
@@ -127,6 +132,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class UInnoCards* Cards;
+
+	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
+		class UCardWidgetManager* CardWidgetManager;
 
 	// Where we got the cards from
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
@@ -288,4 +296,19 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInnoDelegatePlay, int32, PlayId, int32, DrawDeck, const TArray<int32>&, Achs, const TArray<int32>&, Decree, const TArray<EInnoColor>&, Inspire, const TArray<EInnoColor>&, Endorse);
 	UPROPERTY(BlueprintAssignable, Category = "Game")
 		FInnoDelegatePlay Inno_Play;
+
+
+	/////////////////////////////////////////////////////
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void Meld(int32 RequestId, int32 Card);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void Dogma(int32 RequestId, EInnoColor Color);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void Inspire(int32 RequestId, EInnoColor Color);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void Endorse(int32 RequestId, EInnoColor Color);
 };

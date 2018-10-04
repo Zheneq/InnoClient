@@ -24,13 +24,15 @@ void SInnoCardIcon::Construct(const FArguments& InArgs)
 	IconBrush.ImageSize.Y = Image->GetSurfaceHeight();
 	IconBrush.DrawAs = ESlateBrushDrawType::Image;
 
+	Icon = InArgs._Icon;
+
 	ChildSlot
 		[
 			SNew(SBox)
 			.WidthOverride(64)
 			.HeightOverride(64)
 			[
-				SNew(SImage)
+				SAssignNew(Img, SImage)
 				.Image(&IconBrush)
 			]
 			
@@ -85,10 +87,10 @@ void SInnoCard::Construct(const FArguments& InArgs)
 							.AutoHeight()
 							[
 								// HEADER
-								SNew(SBox)
+								SAssignNew(SBHeader, SBox)
 								.HeightOverride(Style->HeaderHeight)
 								[
-									SAssignNew(HBHeader, SHorizontalBox)
+									SNew(SHorizontalBox)
 									+ SHorizontalBox::Slot()
 									.FillWidth(Style->IconsFillWidth)
 									[
@@ -127,8 +129,15 @@ void SInnoCard::Construct(const FArguments& InArgs)
 							.VAlign(EVerticalAlignment::VAlign_Fill)
 							.HAlign(EHorizontalAlignment::HAlign_Fill)
 							[
-								SAssignNew(VBDetails, SVerticalBox)
+								SAssignNew(VBIconEffects, SVerticalBox)
 							]
+							+ SVerticalBox::Slot()
+								.AutoHeight()
+								.VAlign(EVerticalAlignment::VAlign_Fill)
+								.HAlign(EHorizontalAlignment::HAlign_Fill)
+								[
+									SAssignNew(VBEffects, SVerticalBox)
+								]
 						]
 					]
 				]
@@ -140,10 +149,12 @@ void SInnoCard::Construct(const FArguments& InArgs)
 
 void SInnoCard::UpdateContent(const FInnoCard& Card)
 {
-	check(BBackground.IsValid() && BAge.IsValid() && TxtCardName.IsValid() && TxtAge.IsValid() && HBHeader->IsParentValid());
+	check(BBackground.IsValid() && BAge.IsValid() && TxtCardName.IsValid() && TxtAge.IsValid());
+
+	CardId = Card.Id;
 
 	TxtCardName->SetText(Card.Name);
-	BBackground->SetBorderImage(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateRaw(this, &SInnoCard::BackgroundColorBrush, Card.Color)));
+	BBackground->SetBorderImage(BackgroundColorBrush(Card.Color));
 
 	if (Card.Age <= 0)
 	{
@@ -156,7 +167,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 		// Common card
 		GPIcons->SetVisibility(EVisibility::HitTestInvisible);
 		BAge->SetVisibility(EVisibility::HitTestInvisible);
-		BAge->SetBorderImage(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateRaw(this, &SInnoCard::AgeBackgroundColorBrush, Card.Set)));
+		BAge->SetBorderImage(AgeBackgroundColorBrush(Card.Set));
 		TxtAge->SetText(FText::FromString(FString::FromInt(Card.Age)));
 	}
 
@@ -166,22 +177,25 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 
 	check(GPIcons.IsValid());
 	GPIcons->ClearChildren();
+	ICIIcons.Empty();
 	for (int32 i = 0; i < Card.Icons.Num(); ++i)
 	{
+		TSharedPtr<SInnoCardIcon> Icon;
 		GPIcons->AddSlot(X[i], Y[i])
 			[
-				SNew(SInnoCardIcon)
+				SAssignNew(Icon, SInnoCardIcon)
 				.Icon(Card.Icons[i])
 				.Style(Style)
 			];
+		ICIIcons.Add(Icon);
 	}
 
 	// Filling dogmas
-	check(VBDetails.IsValid());
-	VBDetails->ClearChildren();
+	check(VBIconEffects.IsValid());
+	VBIconEffects->ClearChildren();
 	for (const auto& Dogma : Card.Echoes)
 	{
-		VBDetails->AddSlot()
+		VBIconEffects->AddSlot()
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -199,7 +213,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 	}
 	for (const auto& Dogma : Card.Inspire)
 	{
-		VBDetails->AddSlot()
+		VBIconEffects->AddSlot()
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -215,7 +229,10 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 				+ SRichTextBlock::ImageDecorator()
 			];
 	}
-	VBDetails->AddSlot()
+
+	check(VBEffects.IsValid());
+	VBEffects->ClearChildren();
+	VBEffects->AddSlot()
 		.AutoHeight()
 		.VAlign(EVerticalAlignment::VAlign_Fill)
 		.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -227,7 +244,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 		];
 	for (const auto& Dogma : Card.Dogmas)
 	{
-		VBDetails->AddSlot()
+		VBEffects->AddSlot()
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -246,7 +263,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 
 	if (!Card.Karma.IsEmpty())
 	{
-		VBDetails->AddSlot()
+		VBEffects->AddSlot()
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -265,7 +282,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 
 	if (!Card.Text.IsEmpty())
 	{
-		VBDetails->AddSlot()
+		VBEffects->AddSlot()
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)

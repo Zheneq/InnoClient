@@ -15,6 +15,32 @@ EInnoColor UInnoFunctionLibrary::ColorFromString(const UObject* WorldContextObje
 	return (GI && GI->ColorFromString.Contains(String)) ? GI->ColorFromString[String] : EInnoColor::IC_None;
 }
 
+const FString& UInnoFunctionLibrary::StringFromColor(EInnoColor InColor)
+{
+	static const FString Red    = FString("red");
+	static const FString Green  = FString("green");
+	static const FString Blue   = FString("blue");
+	static const FString Purple = FString("purple");
+	static const FString Yellow = FString("yellow");
+	static const FString Def    = FString("");
+
+	switch (InColor)
+	{
+	case EInnoColor::IC_Red:
+		return Red;
+	case EInnoColor::IC_Green:
+		return Green;
+	case EInnoColor::IC_Blue:
+		return Blue;
+	case EInnoColor::IC_Purple:
+		return Purple;
+	case EInnoColor::IC_Yellow:
+		return Yellow;
+	default:
+		return Def;
+	}
+}
+
 EInnoResource UInnoFunctionLibrary::ResourceFromString(const UObject* WorldContextObject, FString String)
 {
 	auto World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
