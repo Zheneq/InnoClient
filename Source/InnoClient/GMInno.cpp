@@ -4,6 +4,7 @@
 #include "InnoClient.h"
 #include "Requester.h"
 #include "InnoCards.h"
+#include "CardWidgetManager.h"
 #include "InnoFunctionLibrary.h"
 
 // Sets default values
@@ -11,6 +12,7 @@ AGMInno::AGMInno()
 {
 	Requester = nullptr;
 	Cards = nullptr;
+	CardWidgetManager = nullptr;
 	PlayerName = TEXT("4356274");
 	PlayerPronoun = TEXT("M");
 	LastUpdateId = -1;
@@ -22,7 +24,9 @@ void AGMInno::BeginPlay()
 {
 	Requester = NewObject<URequester>(this);
 	Cards = NewObject<UInnoCards>(this);
-	
+	CardWidgetManager = NewObject<UCardWidgetManager>(this);
+	CardWidgetManager->Init(Cards->GetCards().Num());
+
 	Super::BeginPlay();
 }
 

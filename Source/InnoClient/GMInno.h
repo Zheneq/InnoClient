@@ -7,6 +7,11 @@
 #include "JsonObjectConverter.h"
 #include "GMInno.generated.h"
 
+UENUM(BlueprintType)
+enum EInno
+{
+	LOCAL_PLAYER_ID = -1		UMETA(DisplayName = "Local Player ID")
+};
 
 UENUM(BlueprintType)
 enum class EInnoSplay : uint8
@@ -127,6 +132,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class UInnoCards* Cards;
+
+	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
+		class UCardWidgetManager* CardWidgetManager;
 
 	// Where we got the cards from
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
