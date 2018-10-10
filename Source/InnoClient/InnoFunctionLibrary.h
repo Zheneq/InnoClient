@@ -4,6 +4,7 @@
 
 #include "UObject/NoExportTypes.h"
 #include "InnoCards.h"
+#include "GMInno.h"
 #include "InnoFunctionLibrary.generated.h"
 
 /**
@@ -18,8 +19,17 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
 		static EInnoColor ColorFromString(const UObject* WorldContextObject, FString String);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static const FString& StringFromColor(EInnoColor InColor);
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
 		static EInnoResource ResourceFromString(const UObject* WorldContextObject, FString String);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static int32 SplayStart(EInnoSplay Splay);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static int32 SplayEnd(EInnoSplay Splay);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
 		static const FInnoCard& GetCard(const UObject* WorldContextObject, int32 Index);

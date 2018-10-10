@@ -3,7 +3,6 @@
 #include "InnoFunctionLibrary.h"
 #include "InnoClient.h"
 #include "GIInno.h"
-#include "GMInno.h"
 #include "InnoCardData.h"
 
 
@@ -15,12 +14,68 @@ EInnoColor UInnoFunctionLibrary::ColorFromString(const UObject* WorldContextObje
 	return (GI && GI->ColorFromString.Contains(String)) ? GI->ColorFromString[String] : EInnoColor::IC_None;
 }
 
+const FString& UInnoFunctionLibrary::StringFromColor(EInnoColor InColor)
+{
+	static const FString Red    = FString("red");
+	static const FString Green  = FString("green");
+	static const FString Blue   = FString("blue");
+	static const FString Purple = FString("purple");
+	static const FString Yellow = FString("yellow");
+	static const FString Def    = FString("");
+
+	switch (InColor)
+	{
+	case EInnoColor::IC_Red:
+		return Red;
+	case EInnoColor::IC_Green:
+		return Green;
+	case EInnoColor::IC_Blue:
+		return Blue;
+	case EInnoColor::IC_Purple:
+		return Purple;
+	case EInnoColor::IC_Yellow:
+		return Yellow;
+	default:
+		return Def;
+	}
+}
+
 EInnoResource UInnoFunctionLibrary::ResourceFromString(const UObject* WorldContextObject, FString String)
 {
 	auto World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
 	UGIInno* GI = World ? Cast<UGIInno>(World->GetGameInstance()) : nullptr;
 
 	return (GI && GI->ResourceFromString.Contains(String)) ? GI->ResourceFromString[String] : EInnoResource::IR_Hex;
+}
+
+int32 UInnoFunctionLibrary::SplayStart(EInnoSplay Splay)
+{
+	switch (Splay)
+	{
+	case EInnoSplay::IPA_Left:
+		return 3;
+	case EInnoSplay::IPA_Right:
+		return 0;
+	case EInnoSplay::IPA_Up:
+		return 1;
+	default:
+		return -1;
+	}
+}
+
+int32 UInnoFunctionLibrary::SplayEnd(EInnoSplay Splay)
+{
+	switch (Splay)
+	{
+	case EInnoSplay::IPA_Left:
+		return 5;
+	case EInnoSplay::IPA_Right:
+		return 2;
+	case EInnoSplay::IPA_Up:
+		return 4;
+	default:
+		return -1;
+	}
 }
 
 const FInnoCard& UInnoFunctionLibrary::GetCard(const UObject* WorldContextObject, int32 Index)
