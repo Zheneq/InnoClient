@@ -143,6 +143,7 @@ FInnoCard UInnoCards::ConvertCard(const FInnoCardRaw& RawCard, int32 Index) cons
 	FInnoCard Res;
 	const auto NS = FString::Printf(TEXT("InnoCard-%06d"), Index);
 
+	Res.Id = Index;
 	Res.Age = RawCard.Age;
 	Res.Color = UInnoFunctionLibrary::ColorFromString(this, RawCard.Color);
 	Res.Name = MakeText(RawCard.Name, NS, TEXT("card_name"));

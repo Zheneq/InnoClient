@@ -57,6 +57,8 @@ struct FInnoCard
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
+		int32 Id;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		int32 Age;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inno")
 		EInnoColor Color;
