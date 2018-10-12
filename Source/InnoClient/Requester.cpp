@@ -2,6 +2,7 @@
 
 #include "Requester.h"
 #include "InnoClient.h"
+#include "Regex.h"
 
 URequester::URequester()
 {
@@ -51,7 +52,7 @@ void URequester::Request(const FHttpResponseDelegate& OnResponseCallback, FStrin
 	}
 
 
-	GEngine->AddOnScreenDebugMessage(1, 3.0f, FColor::Emerald, TEXT("Request"));
+	// GEngine->AddOnScreenDebugMessage(1, 3.0f, FColor::Emerald, TEXT("Request"));
 }
 
 void URequester::Response(FHttpRequestPtr Req, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -75,6 +76,15 @@ void URequester::Response(FHttpRequestPtr Req, FHttpResponsePtr Response, bool b
 		{
 			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.f, FColor::Red, h);
 			UE_LOG(LogTemp, Log, TEXT("Response header: %s"), *h);
+		}
+
+		// Find id in cookies
+		const FString CookieString = Response->GetHeader("Set-Cookie");
+		const FRegexPattern CookieRegex(TEXT("id=\"([^\"]*)\""));
+		FRegexMatcher Matcher(CookieRegex, CookieString);
+		if (Matcher.FindNext())
+		{
+			CookieId = Matcher.GetCaptureGroup(1);
 		}
 
 		//TArray<ANSICHAR> ZeroTerminatedPayload(Response->GetContent());
@@ -192,7 +202,7 @@ void URequester::GetPageResponse(FHttpRequestPtr Req, FHttpResponsePtr Response,
 
 		FString ContentAsString = Response->GetContentAsString();
 
-		UE_LOG(LogTemp, Log, TEXT("Response content: %s"), *ContentAsString);
+		UE_LOG(LogTemp, Log, TEXT("Response content: %s"), *ContentAsString.Left(512));
 		Callback.ExecuteIfBound(Response->GetResponseCode(), ContentAsString, bWasSuccessful);
 	}
 	else

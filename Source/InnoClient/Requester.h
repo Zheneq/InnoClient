@@ -49,4 +49,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "InnoLow")
 		FHttpResponseDelegateMC OnLightRequestResponse;
+
+	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
+		FString CookieId;
 };
