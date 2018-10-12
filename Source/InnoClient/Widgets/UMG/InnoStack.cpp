@@ -65,3 +65,26 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 		}
 	}
 }
+
+void UInnoStack::UpdateSplay(EInnoSplay Splay)
+{
+	MyWidget->UpdateSplay(UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay));
+}
+
+void UInnoStack::SetIsLocalPlayer(bool bNewIsLocalPlayer)
+{
+	bLocalPlayer = bNewIsLocalPlayer;
+	MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
+}
+
+void UInnoStack::SetIsInteractive(bool bNewIsInteractive)
+{
+	bInteractive = bNewIsInteractive;
+	MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
+}
+
+void UInnoStack::SetHideText(bool bNewHideText)
+{
+	bHideText = bNewHideText;
+	MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
+}

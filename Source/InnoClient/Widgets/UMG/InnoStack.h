@@ -58,6 +58,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void Update(const TArray<int32>& Cards, EInnoSplay Splay);
 
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void UpdateSplay(EInnoSplay Splay);
+
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void SetIsLocalPlayer(bool bNewIsLocalPlayer);
+
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void SetIsInteractive(bool bNewIsInteractive);
+
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void SetHideText(bool bNewHideText);
+
 	/** Called when the top card is clicked */
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FOnTopCardClickedEvent OnTopCardClicked;

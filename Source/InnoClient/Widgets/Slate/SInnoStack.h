@@ -25,6 +25,9 @@ protected:
 	// Vertical box -- container for cards
 	TSharedPtr<class SVerticalBox> VBox;
 
+	// Card widgets we have
+	TArray<TSharedPtr<SInnoCard>> MyCards;
+
 	// Current splay
 	int32 MySplayStart, MySplayEnd;
 
@@ -41,8 +44,10 @@ public:
 	// Update contents
 	void Update(const TArray<TSharedPtr<SInnoCard>>& Cards, int32 SplayStart, int32 SplayEnd);
 
+	// Update splay only
+	void UpdateSplay(int32 SplayStart, int32 SplayEnd);
+
 	// Update display/interactability
-	// WARNING: Will be applied on next Update call
 	void UpdateFlags(bool bNewIsLocalPlayer, bool bNewIsInteractive, bool bNewHideText);
 
 	FReply TopCardClicked(int32 CardId);
@@ -50,8 +55,9 @@ public:
 	SInnoCard::FOnCardClicked OnTopCardClicked;
 
 protected:
-	void UpdateCards_Internal(const TArray<TSharedPtr<SInnoCard>>& Cards);
-	void UpdateSplay_Internal(const TArray<TSharedPtr<SInnoCard>>& Cards, int32 SplayStart, int32 SplayEnd);
+	void UpdateCards_Internal();
+	void UpdateFlags_Internal();
+	void UpdateSplay_Internal();
 
 private:
 	//~ Begin ISlateInnoState Interface
