@@ -8,10 +8,14 @@
 #include "GMInno.generated.h"
 
 UENUM(BlueprintType)
-enum EInno
+enum class EInnoPlayerPronoun : uint8 // char
 {
-	LOCAL_PLAYER_ID = -1		UMETA(DisplayName = "Local Player ID")
+	PP_None					UMETA(Hidden), // unreal freaks out if it can't set an enum to zero
+	PP_Neutral = 'P'		UMETA(DisplayName = "Neutral"),
+	PP_Male    = 'M'		UMETA(DisplayName = "Male"),
+	PP_Female  = 'F'		UMETA(DisplayName = "Female"),
 };
+
 
 UENUM(BlueprintType)
 enum class EInnoSplay : uint8
@@ -140,22 +144,20 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		FString CardsUrl;
 
-	UPROPERTY(EditAnywhere)
-		FString PlayerName;
-	UPROPERTY(EditAnywhere)
-		FString PlayerPronoun;
+	// "You've reconnected from another browser window" flag
+	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
+		bool bReconnected;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
+		static FString BuildLoginData(FString PlayerName, EInnoPlayerPronoun PlayerPronoun);
 
-	UFUNCTION(BlueprintCallable, Category = "InnoLow")
-		FString BuildLoginData() const;
-
-	UFUNCTION(BlueprintCallable, Category = "InnoLow")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
 		FString BuildProposeJson(const TArray<FString>& OtherPlayers, bool bEchoes, bool bFigures, bool bCities, bool bExtra) const;
 
-	UFUNCTION(BlueprintCallable, Category = "InnoLow")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
 		FString BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) const;
 
-	UFUNCTION(BlueprintCallable, Category = "InnoLow")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
 		FString BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm) const;
 
 

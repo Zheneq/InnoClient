@@ -13,10 +13,7 @@ AGMInno::AGMInno()
 	Requester = nullptr;
 	Cards = nullptr;
 	CardWidgetManager = nullptr;
-	PlayerName = TEXT("4356274");
-	PlayerPronoun = TEXT("M");
 	LastUpdateId = -1;
-	// PlayerCookie = TEXT("");
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +30,8 @@ void AGMInno::BeginPlay()
 
 bool AGMInno::InnoTick(FString JsonUpdate)
 {
+	bReconnected = false;
+
 	TSharedPtr<FJsonValue> JsonArray;
 
 	if (UInnoFunctionLibrary::ParseJson(JsonUpdate, JsonArray) && JsonArray->AsArray().Num() >= 2)
@@ -104,6 +103,16 @@ bool AGMInno::InnoTick(FString JsonUpdate)
 	}
 	else
 	{
+		if (JsonUpdate == TEXT("You've reconnected from another browser window."))
+		{
+			bReconnected = true;
+		}
+		// TODO fix string. Don't forget to set to false in the beginning of the function if you add this.
+		// if (JsonUpdate == TEXT("No user logon."))
+		// {
+		// 	bLoggedOut = true;
+		// }
+
 		// return false only if Json is unparsed and not empty
 		return JsonUpdate == TEXT("");
 	}
@@ -271,6 +280,7 @@ void AGMInno::InnoUpdate(const TSharedPtr<FJsonObject> Object)
 	int32 UpdateId = Object->GetIntegerField(TEXT("id"));
 	if (UpdateId < LastUpdateId)
 	{
+		// TODO Sometimes discards needed data
 		UE_LOG(LogTemp, Warning, TEXT("AGMInno::InnoUpdate: Outdated. Discarding."));
 		return;
 	}
@@ -386,9 +396,9 @@ void AGMInno::InnoPlay(const TSharedPtr<FJsonObject> Object)
 }
 
 
-FString AGMInno::BuildLoginData() const
+FString AGMInno::BuildLoginData(FString PlayerName, EInnoPlayerPronoun PlayerPronoun)
 {
-	return FString::Printf(TEXT("name=%s&pronoun=%s&lobby=casual&status=&drag=on"), *PlayerName, *PlayerPronoun);
+	return FString::Printf(TEXT("name=%s&pronoun=%c&lobby=casual&status=&drag=on"), *PlayerName, static_cast<char>(PlayerPronoun));
 }
 
 
