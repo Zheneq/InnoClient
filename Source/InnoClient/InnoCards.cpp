@@ -129,10 +129,18 @@ void UInnoCards::Update(const FString& CardsJson)
 FText MakeText(const FString& RawString, const FString& Namespace, const FString Key)
 {
 	const FString ds = UInnoFunctionLibrary::DeHTML(RawString);
-	const FText dt = FText::FromString(ds);
 
 #if WITH_EDITOR
+	// Create an FText with specific key so that it's properly gathered for localization
+	const FText dt = FText::FromString(ds);
 	return FText::ChangeKey(Namespace, Key + TEXT("_") + ds, dt);
+#else
+	// Look for localized version and if there is none, fall back to displaying unlocalized string
+	FText dt;
+	if (!FText::FindText(Namespace, Key + TEXT("_") + ds, dt, &ds))
+	{
+		dt = FText::FromString(ds);
+	}
 #endif
 
 	return dt;
