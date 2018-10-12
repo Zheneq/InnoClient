@@ -5,6 +5,7 @@
 #include "UObject/NoExportTypes.h"
 #include "InnoCards.h"
 #include "GMInno.h"
+#include "HAL/PlatformApplicationMisc.h"
 #include "InnoFunctionLibrary.generated.h"
 
 /**
@@ -16,6 +17,12 @@ class INNOCLIENT_API UInnoFunctionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintCallable)
+		static void CopyToClipboard(const FString& Text) { FPlatformApplicationMisc::ClipboardCopy(*Text); }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static int GetLocalPlayerId() { return -1; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
 		static EInnoColor ColorFromString(const UObject* WorldContextObject, FString String);
 
