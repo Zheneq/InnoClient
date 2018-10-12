@@ -27,7 +27,7 @@ const FText UInnoHand::GetPaletteCategory()
 
 FReply UInnoHand::SlateHandleClicked(int32 CardId)
 {
-	OnTopCardClicked.Broadcast(CardId);
+	OnCardClicked.Broadcast(CardId);
 
 	return FReply::Handled();
 }

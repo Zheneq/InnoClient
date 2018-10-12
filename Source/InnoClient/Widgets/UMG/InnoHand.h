@@ -47,15 +47,12 @@ protected:
 	TWeakObjectPtr < class AGMInno > GM;
 
 public:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
-		bool bInteractive;
-
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void Update(const TArray<int32>& Cards);
 
 	/** Called when the top card is clicked */
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
-		FOnCardInHandClickedEvent OnTopCardClicked;
+		FOnCardInHandClickedEvent OnCardClicked;
 
 	FReply SlateHandleClicked(int32 CardId);
 };

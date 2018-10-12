@@ -42,7 +42,7 @@ public:
 		_bAnimateScroll(true),
 		_StyleOverride(nullptr)
 	{
-		_Visibility = EVisibility::SelfHitTestInvisible;
+		_Visibility = EVisibility::Visible;
 	}
 	SLATE_SUPPORTS_SLOT(FSlot)
 	SLATE_ARGUMENT(EOrientation, Orientation)
