@@ -5,6 +5,7 @@
 #include "Requester.h"
 #include "InnoCards.h"
 #include "CardWidgetManager.h"
+#include "LogParser.h"
 #include "InnoFunctionLibrary.h"
 
 // Sets default values
@@ -23,6 +24,8 @@ void AGMInno::BeginPlay()
 	Cards = NewObject<UInnoCards>(this);
 	CardWidgetManager = NewObject<UCardWidgetManager>(this);
 	CardWidgetManager->Init(Cards->GetCards().Num());
+	LogParser = NewObject<ULogParser>(this);
+	LogParser->Init(this);
 
 	Super::BeginPlay();
 }

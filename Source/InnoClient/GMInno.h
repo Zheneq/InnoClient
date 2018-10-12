@@ -142,6 +142,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class UCardWidgetManager* CardWidgetManager;
 
+	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
+		class ULogParser* LogParser;
+
 	// Where we got the cards from
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		FString CardsUrl;
