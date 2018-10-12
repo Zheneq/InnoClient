@@ -39,6 +39,8 @@ struct FInnoPlayerPileInfo
 		TArray<int32> Splay;
 	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Warning"))
 		bool q;
+	UPROPERTY(BlueprintReadOnly, Category = "Inno", meta = (DisplayName = "Activate", ToolTip = "If true, local player can make a dogma action with the top card of this stack."))
+		bool Activate;
 };
 
 USTRUCT(BlueprintType)
