@@ -79,7 +79,7 @@ protected:
 	TArray<TSharedPtr<SInnoCardIcon>> ICIIcons;
 
 	// Colored card background
-	TSharedPtr<class SMyBorder> BBackground;
+	TSharedPtr<SBorder> BBackground;
 
 	// Colored age background
 	TSharedPtr<SBorder> BAge;
@@ -116,9 +116,6 @@ public:
 			Style = DefaultStyle;
 		}
 	}
-
-	const FSlateBrush* BackgroundColorBrush(EInnoColor Color) const;
-	const FSlateBrush* AgeBackgroundColorBrush(int32 Set) const;
 
 private:
 	FReply OnClickedHandle() { return OnClicked.IsBound() ? OnClicked.Execute(CardId) : FReply::Handled(); }

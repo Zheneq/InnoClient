@@ -21,7 +21,6 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		: Width(260)
 		, MinHeight(260)
 		, BorderThickness(3)
-		, BorderColor(FLinearColor::Black)
 		, BorderPadding(2)
 		, ColorAndOpacity(FLinearColor::White)
 
@@ -55,8 +54,6 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		, KarmaTextStyle(DefaultText)
 		, KarmaLineHeightPercentage(1)
 		, KarmaJustification(ETextJustify::Left)
-
-		, BorderColorBrush(FSlateColorBrush(FLinearColor::Black))
 	{};
 
 	// begin FSlateWidgetStyle interface 
@@ -79,13 +76,10 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		float Width;
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 		float MinHeight;
-	UPROPERTY(EditDefaultsOnly, Category = "Card")
+	UPROPERTY(EditDefaultsOnly, Category = "Card", meta = (DisplayName = "Border Style"))
 		FButtonStyle ButtonStyle;
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 		float BorderThickness;
-	// Deprecated. Use ButtonStyle to set border color.
-	UPROPERTY(EditDefaultsOnly, Category = "Card", meta = (DisplayName = "BorderColor"))
-		FLinearColor BorderColor;
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 		FMargin BorderPadding;
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
@@ -159,12 +153,12 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		TEnumAsByte<ETextJustify::Type> KarmaJustification;
 
 	UPROPERTY()
-		FSlateBrush BorderColorBrush;
-	UPROPERTY()
 		TMap<EInnoColor, FSlateBrush> BackgroundColorBrushes;
 	UPROPERTY()
 		TArray<FSlateBrush> AgeBackgroundColorBrushes;
 
+	const FSlateBrush* BackgroundColorBrush(EInnoColor Color) const;
+	const FSlateBrush* AgeBackgroundColorBrush(int32 Set) const;
 };
 
 // Provides a widget style container to allow us to edit properties in-editor
@@ -184,23 +178,6 @@ public:
 	}
 
 #if WITH_EDITOR
-	void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override
-	{
-		Super::PostEditChangeProperty(PropertyChangedEvent);
-
-		Style.BackgroundColorBrushes.Empty(Style.BackgroundColors_EDITOR.Num());
-		for (const auto& c : Style.BackgroundColors_EDITOR)
-		{
-			Style.BackgroundColorBrushes.Add(c.Key, FSlateColorBrush(c.Value));
-		}
-
-		Style.AgeBackgroundColorBrushes.Empty(Style.AgeBackgroundColors_EDITOR.Num());
-		for (int32 i = 0; i < Style.AgeBackgroundColors_EDITOR.Num(); ++i)
-		{
-			Style.AgeBackgroundColorBrushes.Add(FSlateColorBrush(Style.AgeBackgroundColors_EDITOR[i]));
-		}
-
-		Style.BorderColorBrush = FSlateColorBrush(Style.BorderColor);
-	}
+	void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif // WITH_EDITOR
 };

@@ -69,19 +69,18 @@ void SInnoCard::Construct(const FArguments& InArgs)
 				.VAlign(EVerticalAlignment::VAlign_Fill)
 				.HAlign(EHorizontalAlignment::HAlign_Fill)
 				[
-					SNew(SBorder)
+					SNew(SMyBorder)
 					.Padding(FMargin(Style->BorderThickness))
-//					.BorderImage(&Style->BorderColorBrush)
+					.ShowEffectWhenDisabled(false)
 					.BorderBackgroundColor(FLinearColor::Transparent)
 					.Visibility(EVisibility::HitTestInvisible)
 					.VAlign(EVerticalAlignment::VAlign_Fill)
 					.HAlign(EHorizontalAlignment::HAlign_Fill)
 					[
-						SAssignNew(BBackground, SMyBorder)
+						SAssignNew(BBackground, SBorder)
 						.Padding(Style->BorderPadding)
 						.ColorAndOpacity(Style->ColorAndOpacity)
 						.Clipping(EWidgetClipping::ClipToBounds)
-						.ShowEffectWhenDisabled(false)
 						.VAlign(EVerticalAlignment::VAlign_Fill)
 						.HAlign(EHorizontalAlignment::HAlign_Fill)
 						[
@@ -162,7 +161,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 	CardId = Card.Id;
 
 	TxtCardName->SetText(Card.Name);
-	BBackground->SetBorderImage(BackgroundColorBrush(Card.Color));
+	BBackground->SetBorderImage(Style->BackgroundColorBrush(Card.Color));
 
 	if (Card.Age <= 0)
 	{
@@ -175,7 +174,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 		// Common card
 		GPIcons->SetVisibility(EVisibility::HitTestInvisible);
 		BAge->SetVisibility(EVisibility::HitTestInvisible);
-		BAge->SetBorderImage(AgeBackgroundColorBrush(Card.Set));
+		BAge->SetBorderImage(Style->AgeBackgroundColorBrush(Card.Set));
 		TxtAge->SetText(FText::FromString(FString::FromInt(Card.Age)));
 	}
 
@@ -248,7 +247,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 			SNew(SSeparator)
 			.Orientation(EOrientation::Orient_Horizontal)
 			.Thickness(Style->BorderThickness)
-			.ColorAndOpacity(Style->BorderColor)
+			.ColorAndOpacity(Style->ButtonStyle.Normal.TintColor)
 		];
 	for (const auto& Dogma : Card.Dogmas)
 	{
@@ -308,23 +307,3 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 	}
 }
 // END_SLATE_FUNCTION_BUILD_OPTIMIZATION
-
-const FSlateBrush* SInnoCard::BackgroundColorBrush(EInnoColor Color) const
-{
-	if (Style && Style->BackgroundColorBrushes.Contains(Color))
-	{
-		return &Style->BackgroundColorBrushes[Color];
-	}
-
-	return nullptr;
-}
-
-const FSlateBrush* SInnoCard::AgeBackgroundColorBrush(int32 Set) const
-{
-	if (Style && Style->AgeBackgroundColorBrushes.IsValidIndex(Set))
-	{
-		return &Style->AgeBackgroundColorBrushes[Set];
-	}
-
-	return nullptr;
-}
