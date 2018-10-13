@@ -7,6 +7,7 @@
 #include "Widgets/Slate/SInnoCard.h"
 #include "InnoCard.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCardEvent, int32, Card);
 /**
  * 
  */
@@ -24,6 +25,19 @@ public:
 
 	UFUNCTION(BLueprintCallable, Category = "Inno")
 		void SetCardId(int32 InCardId);
+
+	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
+		FCardEvent OnClicked;
+
+	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
+		FCardEvent OnHovered;
+
+	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
+		FCardEvent OnUnhovered;
+
+	FReply SlateHandleClicked(int32 CardId);
+	void SlateHandleHovered(int32 CardId);
+	void SlateHandleUnhovered(int32 CardId);
 	
 	UInnoCardWidget() : CardId(0) {}
 public:
