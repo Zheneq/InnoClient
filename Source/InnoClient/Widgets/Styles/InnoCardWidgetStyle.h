@@ -83,6 +83,7 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		FButtonStyle ButtonStyle;
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 		float BorderThickness;
+	// Deprecated. Use ButtonStyle to set border color.
 	UPROPERTY(EditDefaultsOnly, Category = "Card", meta = (DisplayName = "BorderColor"))
 		FLinearColor BorderColor;
 	UPROPERTY(EditDefaultsOnly, Category = "Card")

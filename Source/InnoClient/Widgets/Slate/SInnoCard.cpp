@@ -1,6 +1,7 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 
 #include "SInnoCard.h"
+#include "SMyBorder.h"
 #include "Widgets/Styles/InnoWidgetStyles.h"
 #include "Widgets/Layout/SScaleBox.h"
 #include "SlateExtras.h"
@@ -70,15 +71,17 @@ void SInnoCard::Construct(const FArguments& InArgs)
 				[
 					SNew(SBorder)
 					.Padding(FMargin(Style->BorderThickness))
-					.BorderImage(&Style->BorderColorBrush)
+//					.BorderImage(&Style->BorderColorBrush)
+					.BorderBackgroundColor(FLinearColor::Transparent)
 					.Visibility(EVisibility::HitTestInvisible)
 					.VAlign(EVerticalAlignment::VAlign_Fill)
 					.HAlign(EHorizontalAlignment::HAlign_Fill)
 					[
-						SAssignNew(BBackground, SBorder)
+						SAssignNew(BBackground, SMyBorder)
 						.Padding(Style->BorderPadding)
 						.ColorAndOpacity(Style->ColorAndOpacity)
 						.Clipping(EWidgetClipping::ClipToBounds)
+						.ShowEffectWhenDisabled(false)
 						.VAlign(EVerticalAlignment::VAlign_Fill)
 						.HAlign(EHorizontalAlignment::HAlign_Fill)
 						[
@@ -115,6 +118,7 @@ void SInnoCard::Construct(const FArguments& InArgs)
 									.FillWidth(Style->AgeFillWidth)
 									[
 										SAssignNew(BAge, SBorder)
+										.ShowEffectWhenDisabled(false)
 										.VAlign(EVerticalAlignment::VAlign_Center)
 										[
 											SAssignNew(TxtAge, STextBlock)
@@ -145,6 +149,10 @@ void SInnoCard::Construct(const FArguments& InArgs)
 		];
 
 	UpdateContent(InArgs._Card);
+
+	OnClicked = InArgs._OnClicked;
+	OnHovered = InArgs._OnHovered;
+	OnUnhovered = InArgs._OnUnhovered;
 }
 
 void SInnoCard::UpdateContent(const FInnoCard& Card)

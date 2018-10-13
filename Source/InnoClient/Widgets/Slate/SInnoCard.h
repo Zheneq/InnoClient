@@ -43,13 +43,18 @@ public:
 
 class INNOCLIENT_API SInnoCard : public SCompoundWidget
 {
-
 public:
+	DECLARE_DELEGATE_RetVal_OneParam(FReply, FOnCardClicked, int32);
+	DECLARE_DELEGATE_OneParam(FOnCardSimple, int32);
+
 	SLATE_BEGIN_ARGS(SInnoCard)
 		: _StyleOverride(nullptr)
 	{}
 	SLATE_ARGUMENT(FInnoCard, Card)
 	SLATE_ARGUMENT(const FInnoCardStyle*, StyleOverride)
+	SLATE_EVENT(FOnCardClicked, OnClicked)
+	SLATE_EVENT(FOnCardSimple, OnHovered)
+	SLATE_EVENT(FOnCardSimple, OnUnhovered)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& args);
@@ -74,7 +79,7 @@ protected:
 	TArray<TSharedPtr<SInnoCardIcon>> ICIIcons;
 
 	// Colored card background
-	TSharedPtr<SBorder> BBackground;
+	TSharedPtr<class SMyBorder> BBackground;
 
 	// Colored age background
 	TSharedPtr<SBorder> BAge;
@@ -123,10 +128,6 @@ private:
 	void OnUnhoveredHandle() { if (OnUnhovered.IsBound()) OnUnhovered.Execute(CardId); }
 
 public:
-	
-	DECLARE_DELEGATE_RetVal_OneParam(FReply, FOnCardClicked, int32);
-
-	DECLARE_DELEGATE_OneParam(FOnCardSimple, int32);
 
 	/** The delegate to execute when the button is clicked */
 	FOnCardClicked OnClicked;
@@ -200,7 +201,7 @@ public:
 
 			}
 
-			VBIconEffects->SetVisibility(bIconEffectVisible ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+			VBIconEffects->SetVisibility(bIconEffectVisible ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
 			VBEffects->SetVisibility(bTopCard ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
 		}
 	}
