@@ -41,7 +41,7 @@ const FInnoDogmaStyle& FInnoDogmaStyle::GetDefault()
 void FInnoDogmaStyle::UpdateBrushes() const
 {
 	// Always make full update in the editor as the asset can be modified
-#ifndef WITH_EDITOR
+#if !(WITH_EDITOR)
 	if (IconBrushes.Num() == 0 && IconTextures.Num() != 0)
 #endif
 	{
@@ -63,7 +63,7 @@ void FInnoDogmaStyle::UpdateBrushes() const
 			}
 		}
 	}
-#ifndef WITH_EDITOR
+#if !(WITH_EDITOR)
 	else
 	{
 		// Update size only, textures are not supposed to change in runtime

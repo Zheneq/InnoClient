@@ -88,7 +88,7 @@ const FInnoCard& UInnoFunctionLibrary::GetCard(const UObject* WorldContextObject
 		return GM->Cards->GetCard(Index);
 	}
 
-#ifdef WITH_EDITOR
+#if WITH_EDITOR
 	// No gamemode, fall back to data asset
 	UInnoCardData* MyAsset = Cast<UInnoCardData>(FStringAssetReference(UInnoCards::CardInfoPath).TryLoad());
 
