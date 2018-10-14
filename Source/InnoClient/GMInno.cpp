@@ -387,8 +387,12 @@ void AGMInno::InnoPlay(const TSharedPtr<FJsonObject> Object)
 		}
 	}
 
-	if (Object->TryGetNumberField(TEXT("draw"), DrawDeck) &&
-		Object->TryGetNumberField(TEXT("id"), PlayId))
+	if (!Object->TryGetNumberField(TEXT("draw"), DrawDeck)) // can be null
+	{
+		DrawDeck = -1;
+	}
+
+	if (Object->TryGetNumberField(TEXT("id"), PlayId))
 	{
 		Inno_Play.Broadcast(PlayId, DrawDeck, Achs, Decree, Inspire, Endorse);
 	}
