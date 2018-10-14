@@ -21,6 +21,8 @@ protected:
 	TSharedPtr<SInnoHand> MyWidget;
 
 public:
+	UInnoHand() : Orientation(EOrientation::Orient_Vertical) {}
+
 	//~ Begin UWidget Interface
 	// virtual void SynchronizeProperties() override;
 	//~ End UWidget Interface
@@ -47,6 +49,9 @@ protected:
 	TWeakObjectPtr < class AGMInno > GM;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
+		TEnumAsByte<EOrientation> Orientation;
+
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void Update(const TArray<int32>& Cards);
 

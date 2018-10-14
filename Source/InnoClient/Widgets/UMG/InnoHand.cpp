@@ -16,6 +16,7 @@ void UInnoHand::ReleaseSlateResources(bool bReleaseChildren)
 TSharedRef<SWidget> UInnoHand::RebuildWidget()
 {
 	MyWidget = SNew(SInnoHand)
+		.Orientation(Orientation)
 		.OnCardClicked(BIND_UOBJECT_DELEGATE(SInnoCard::FOnCardClicked, SlateHandleClicked));
 
 	return MyWidget.ToSharedRef();
