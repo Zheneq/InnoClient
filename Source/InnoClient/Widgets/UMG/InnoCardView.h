@@ -30,24 +30,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Widget")
 		UInnoCardViewSlot* AddChildToCardView(UWidget* Content);
 
-	UPROPERTY(EditAnywhere, Category = "Widget")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 		TEnumAsByte<EOrientation> Orientation;
 
-	UPROPERTY(EditAnywhere, Category = "Widget")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 		int32 DefaultSelection;
 
-	UPROPERTY(EditAnywhere, Category = "Widget")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 		bool bDefaultSelected;
 
-	UPROPERTY(EditAnywhere, Category = "Widget")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 		bool bAnimateScroll;
 
-	UPROPERTY(EditAnywhere, Category = "Widget")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 		class USlateWidgetStyleAsset* StyleOverride;
 
+	/** Scroll to child at index. */
 	UFUNCTION(BlueprintCallable, Category = "Widget")
 		void Select(int32 Index);
 
+	/** Shortcut for disabling/enabling all the children. */
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void SetChildrenEnabled(bool bNewChildrenEnabled);
+
+public:
 #if WITH_EDITOR
 	// UObject Interface
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;

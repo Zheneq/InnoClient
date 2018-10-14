@@ -14,17 +14,15 @@ void SInnoStack::Construct(const FArguments& InArgs)
 		];
 
 	bLocalPlayer     = InArgs._bLocalPlayer;
-	bInteractive     = InArgs._bInteractive;
 	bHideText        = InArgs._bHideText;
 	OnTopCardClicked = InArgs._OnTopCardClicked;
 
 	SetVisibility(EVisibility::Collapsed);
 }
 
-void SInnoStack::UpdateFlags(bool bNewIsLocalPlayer, bool bNewIsInteractive, bool bNewHideText)
+void SInnoStack::UpdateFlags(bool bNewIsLocalPlayer, bool bNewHideText)
 {
 	bLocalPlayer = bNewIsLocalPlayer;
-	bInteractive = bNewIsInteractive;
 	bHideText    = bNewHideText;
 
 	UpdateFlags_Internal();
@@ -75,6 +73,7 @@ void SInnoStack::UpdateCards_Internal()
 
 			CardWidget->SetRespectMinimalHeight(false);
 			CardWidget->SetHideHeader(false);
+			CardWidget->SetEnabled(!i);
 			CardWidget->SetSelectiveHideText(!!i);
 			CardWidget->OnClicked.Unbind();
 
@@ -85,6 +84,7 @@ void SInnoStack::UpdateCards_Internal()
 
 			VBox->AddSlot()
 				.Padding(FMargin(0, 2))
+				.AutoHeight()
 				[
 					CardWidget.ToSharedRef()
 				];
@@ -96,14 +96,11 @@ void SInnoStack::UpdateFlags_Internal()
 {
 	if (MyCards.Num() != 0) // otherwise it's already collapsed
 	{
-		SetVisibility(bInteractive ? EVisibility::SelfHitTestInvisible : EVisibility::HitTestInvisible);
-
 		for (int32 i = 0; i < MyCards.Num(); ++i)
 		{
 			const TSharedPtr<SInnoCard> CardWidget = MyCards[i];
 			
 			CardWidget->SetHideText(bHideText);
-			CardWidget->SetEnabled(bInteractive && !i);
 			CardWidget->SetHideHeader(!bLocalPlayer && !!i);
 		}
 	}

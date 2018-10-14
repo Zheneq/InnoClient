@@ -3,6 +3,7 @@
 #include "InnoCardList.h"
 #include "GMInno.h"
 #include "CardWidgetManager.h"
+#include "InnoClient.h"
 
 void UInnoCardList::SynchronizeProperties()
 {
@@ -61,4 +62,10 @@ void UInnoCardList::Update(const TArray<int32>& Cards)
 			MyWidget->Update(NewWidgets);
 		}
 	}
+#if UE_BUILD_DEBUG
+	else
+	{
+		UE_LOG(LogInno, Warning, TEXT("UInnoCardList::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
+	}
+#endif // UE_BUILD_DEBUG
 }

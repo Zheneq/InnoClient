@@ -156,7 +156,7 @@ void SInnoCard::Construct(const FArguments& InArgs)
 
 void SInnoCard::UpdateContent(const FInnoCard& Card)
 {
-	check(BBackground.IsValid() && BAge.IsValid() && TxtCardName.IsValid() && TxtAge.IsValid());
+	check(Style && BBackground.IsValid() && BAge.IsValid() && TxtCardName.IsValid() && TxtAge.IsValid());
 
 	CardId = Card.Id;
 

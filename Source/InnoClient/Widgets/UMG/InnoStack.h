@@ -47,10 +47,7 @@ protected:
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
-		bool bLocalPlayer;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
-		bool bInteractive;
+		bool bIsLocalPlayer;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
 		bool bHideText;
@@ -63,9 +60,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void SetIsLocalPlayer(bool bNewIsLocalPlayer);
-
-	UFUNCTION(BlueprintCallable, Category = "Innovation")
-		void SetIsInteractive(bool bNewIsInteractive);
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void SetHideText(bool bNewHideText);

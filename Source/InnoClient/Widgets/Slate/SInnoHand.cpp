@@ -42,6 +42,14 @@ FReply SInnoHand::CardClicked(int32 CardId)
 	return OnCardClicked.IsBound() ? OnCardClicked.Execute(CardId) : FReply::Unhandled();
 }
 
+void SInnoHand::SetChildrenEnabled(bool bNewChildrenEnabled)
+{
+	if (Panel.IsValid())
+	{
+		Panel->SetChildrenEnabled(bNewChildrenEnabled);
+	}
+}
+
 TSharedPtr<SInnoCard> SInnoHand::PerformCardRemoval(uint32 Position)
 {
 	const TSharedRef<SWidget> WidgetPtr = Panel->GetChildren()->GetChildAt(Position);

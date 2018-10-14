@@ -5,12 +5,16 @@
 #include "CardWidgetManager.h"
 #include "InnoFunctionLibrary.h"
 #include "Engine.h"
+#include "Algo/Reverse.h"
+#include "InnoClient.h"
 
 void UInnoStack::SynchronizeProperties()
 {
+	Super::SynchronizeProperties();
+
 	if (MyWidget.IsValid())
 	{
-		MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
+		MyWidget->UpdateFlags(bIsLocalPlayer, bHideText);
 	}
 }
 
@@ -24,8 +28,7 @@ void UInnoStack::ReleaseSlateResources(bool bReleaseChildren)
 TSharedRef<SWidget> UInnoStack::RebuildWidget()
 {
 	MyWidget = SNew(SInnoStack)
-		.bLocalPlayer(bLocalPlayer)
-		.bInteractive(bInteractive)
+		.bLocalPlayer(bIsLocalPlayer)
 		.bHideText(bHideText)
 		.OnTopCardClicked(BIND_UOBJECT_DELEGATE(SInnoCard::FOnCardClicked, SlateHandleClicked));
 
@@ -61,9 +64,19 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 			{
 				NewWidgets.Add(GM.Get()->CardWidgetManager->GetCard(CardId));
 			}
+			
+			// Server orders cards from bottom to top
+			Algo::Reverse(NewWidgets);
+
 			MyWidget->Update(NewWidgets, UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay));
 		}
 	}
+#if UE_BUILD_DEBUG
+	else
+	{
+		UE_LOG(LogInno, Warning, TEXT("UInnoStack::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
+	}
+#endif // UE_BUILD_DEBUG
 }
 
 void UInnoStack::UpdateSplay(EInnoSplay Splay)
@@ -73,18 +86,12 @@ void UInnoStack::UpdateSplay(EInnoSplay Splay)
 
 void UInnoStack::SetIsLocalPlayer(bool bNewIsLocalPlayer)
 {
-	bLocalPlayer = bNewIsLocalPlayer;
-	MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
-}
-
-void UInnoStack::SetIsInteractive(bool bNewIsInteractive)
-{
-	bInteractive = bNewIsInteractive;
-	MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
+	bIsLocalPlayer = bNewIsLocalPlayer;
+	MyWidget->UpdateFlags(bIsLocalPlayer, bHideText);
 }
 
 void UInnoStack::SetHideText(bool bNewHideText)
 {
 	bHideText = bNewHideText;
-	MyWidget->UpdateFlags(bLocalPlayer, bInteractive, bHideText);
+	MyWidget->UpdateFlags(bIsLocalPlayer, bHideText);
 }

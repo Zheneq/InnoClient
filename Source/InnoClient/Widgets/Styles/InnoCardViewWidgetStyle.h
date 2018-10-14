@@ -11,9 +11,10 @@ struct FInnoCardViewStyle : public FSlateWidgetStyle
 {
 	GENERATED_USTRUCT_BODY()
 
-	FInnoCardViewStyle() :
-		ScrollSpeed(15.f),
-		ScrollSensitivity(.01f)
+	FInnoCardViewStyle()
+		: ScrollSpeed(15.f)
+		, ScrollSensitivity(.01f)
+		, ChildDominanceThreshold(.75f)
 	{};
 
 	// begin FSlateWidgetStyle interface 
@@ -32,16 +33,24 @@ struct FInnoCardViewStyle : public FSlateWidgetStyle
 		return Default;
 	};
 
-	// 
+	// View percentage, 0 for selected widget, +-1 for adjacent ones.
+	// Will animate along the curve when scrolling.
 	UPROPERTY(EditAnywhere, Category = Appearance)
 		FRuntimeFloatCurve Curve;
 
 	// 
 	UPROPERTY(EditAnywhere, Category = Appearance)
 		float ScrollSpeed;
-	// 
+
+	// Scroll Sensitivity for touchscreens.
 	UPROPERTY(EditAnywhere, Category = Appearance)
 		float ScrollSensitivity;
+
+	// How big view percentage a child must have to be considered dominant and to be interactable.
+	// Set to 0 if you want instant reaction, and to 1 if you want the widget to be interactable
+	// only when animation has finished.
+	UPROPERTY(EditAnywhere, Category = Appearance)
+		float ChildDominanceThreshold;
 };
 
 // Provides a widget style container to allow us to edit properties in-editor

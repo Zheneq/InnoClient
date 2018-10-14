@@ -104,6 +104,9 @@ public:
 	/**  */
 	bool bAnimateScroll;
 
+	/** Allow mouse events on children only when one child has dominant view oercentage over the others (see Tick) */
+	bool bCanClick;
+
 	/**  */
 	void SetStyle(const struct FInnoCardViewStyle* StyleOverride)
 	{
@@ -197,4 +200,6 @@ public:
 	const struct FInnoCardViewStyle* DefaultStyle;
 
 	void SetSelectedIndex(int32 Index);
+
+	void SetChildrenEnabled(bool bNewChildrenEnabled);
 };

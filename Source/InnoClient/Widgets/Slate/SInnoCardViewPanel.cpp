@@ -265,10 +265,20 @@ void SInnoCardViewPanel::SetSelectedIndex(int32 Index)
 	UpdateChildrenInteraction();
 }
 
+void SInnoCardViewPanel::SetChildrenEnabled(bool bNewChildrenEnabled)
+{
+	for (int32 i = 0; i < Children.Num(); ++i)
+	{
+		const auto Child = Children.GetChildAt(i);
+		Child->SetEnabled(bNewChildrenEnabled);
+	}
+}
+
 void SInnoCardViewPanel::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	const bool bWasScrolling = bIsScrolling;
 	bIsScrolling = !FMath::IsNearlyEqual(SelectedIndex, CurrentScroll, 0.001f);
+	bCanClick = FMath::Abs(SelectedIndex - CurrentScroll) < Style->ChildDominanceThreshold;
 	CurrentScroll = (bAnimateScroll)
 		? FMath::FInterpTo(CurrentScroll, SelectedIndex, InDeltaTime, Style->ScrollSpeed)
 		: SelectedIndex;
@@ -314,9 +324,9 @@ void SInnoCardViewPanel::UpdateChildrenInteraction() const
 	{
 		const TSharedRef<SWidget> Widget = Children[SlotIndex].GetWidget();
 		const EVisibility Vis = Widget->GetVisibility();
-		if (Vis != EVisibility::Hidden && Vis != EVisibility::Collapsed)
+		if (Vis.IsVisible())
 		{
-			Widget->SetVisibility(bIsSelected && !bIsScrolling && SelectedIndex == SlotIndex ? EVisibility::Visible : EVisibility::HitTestInvisible);
+			Widget->SetVisibility(bIsSelected && bCanClick && SelectedIndex == SlotIndex ? EVisibility::Visible : EVisibility::HitTestInvisible);
 		}
 	}
 }

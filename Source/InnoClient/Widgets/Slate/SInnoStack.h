@@ -9,11 +9,9 @@ class INNOCLIENT_API SInnoStack : public SCompoundWidget, public ISlateInnoState
 {
 	SLATE_BEGIN_ARGS(SInnoStack) :
 		_bLocalPlayer(false),
-		_bInteractive(false),
 		_bHideText(false)
 	{}
 	SLATE_ARGUMENT(bool, bLocalPlayer)
-	SLATE_ARGUMENT(bool, bInteractive)
 	SLATE_ARGUMENT(bool, bHideText)
 	SLATE_EVENT(SInnoCard::FOnCardClicked, OnTopCardClicked)
 	SLATE_END_ARGS()
@@ -34,9 +32,6 @@ protected:
 	// Information viewed depends on whether it's the local player or an opponent
 	bool bLocalPlayer : 1;
 
-	// If false, will be always just a picture
-	bool bInteractive : 1;
-
 	// Option to hide all the text leaving only the header of the top card
 	bool bHideText : 1;
 
@@ -48,7 +43,7 @@ public:
 	void UpdateSplay(int32 SplayStart, int32 SplayEnd);
 
 	// Update display/interactability
-	void UpdateFlags(bool bNewIsLocalPlayer, bool bNewIsInteractive, bool bNewHideText);
+	void UpdateFlags(bool bNewIsLocalPlayer, bool bNewHideText);
 
 	FReply TopCardClicked(int32 CardId);
 

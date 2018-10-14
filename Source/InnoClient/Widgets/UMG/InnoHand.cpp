@@ -4,6 +4,7 @@
 #include "GMInno.h"
 #include "CardWidgetManager.h"
 #include "Engine.h"
+#include "InnoClient.h"
 
 void UInnoHand::ReleaseSlateResources(bool bReleaseChildren)
 {
@@ -51,5 +52,19 @@ void UInnoHand::Update(const TArray<int32>& Cards)
 			}
 			MyWidget->Update(NewWidgets);
 		}
+	}
+#if UE_BUILD_DEBUG
+	else
+	{
+		UE_LOG(LogInno, Warning, TEXT("UInnoHand::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
+	}
+#endif // UE_BUILD_DEBUG
+}
+
+void UInnoHand::SetChildrenEnabled(bool bNewChildrenEnabled)
+{
+	if (MyWidget.IsValid())
+	{
+		MyWidget->SetChildrenEnabled(bNewChildrenEnabled);
 	}
 }

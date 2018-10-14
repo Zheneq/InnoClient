@@ -23,8 +23,11 @@ public:
 	// Update contents
 	void Update(TArray<TSharedPtr<SInnoCard>> Cards);
 
-	FReply CardClicked(int32 CardId);
+	/** Shortcut for disabling/enabling all the children. */
+	void SetChildrenEnabled(bool bNewChildrenEnabled);
 
+	/** Click event handling. */
+	FReply CardClicked(int32 CardId);
 	SInnoCard::FOnCardClicked OnCardClicked;
 
 private:

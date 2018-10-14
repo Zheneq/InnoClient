@@ -57,6 +57,14 @@ void UInnoCardView::Select(int32 Index)
 	}
 }
 
+void UInnoCardView::SetChildrenEnabled(bool bNewChildrenEnabled)
+{
+	if (MyInnoCardViewPanel.IsValid())
+	{
+		MyInnoCardViewPanel->SetChildrenEnabled(bNewChildrenEnabled);
+	}
+}
+
 void UInnoCardView::ReleaseSlateResources(bool bReleaseChildren)
 {
 	Super::ReleaseSlateResources(bReleaseChildren);
@@ -93,7 +101,7 @@ void UInnoCardView::OnSlotRemoved(UPanelSlot* InSlot)
 
 UInnoCardViewSlot* UInnoCardView::AddChildToCardView(UWidget* Content)
 {
-	return Cast<UInnoCardViewSlot>(Super::AddChild(Content));
+	return Cast<UInnoCardViewSlot>(AddChild(Content));
 }
 
 TSharedRef<SWidget> UInnoCardView::RebuildWidget()

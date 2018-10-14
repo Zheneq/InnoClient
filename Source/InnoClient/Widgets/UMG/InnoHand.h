@@ -50,6 +50,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void Update(const TArray<int32>& Cards);
 
+	/** Shortcut for disabling/enabling all the children. */
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void SetChildrenEnabled(bool bNewChildrenEnabled);
+
 	/** Called when the top card is clicked */
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FOnCardInHandClickedEvent OnCardClicked;
