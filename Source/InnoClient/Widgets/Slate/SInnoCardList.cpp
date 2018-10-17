@@ -11,6 +11,7 @@ void SInnoCardList::Construct(const FArguments& InArgs)
 	ChildSlot
 		[
 			SAssignNew(WBox, SWrapBox)
+			.UseAllottedWidth(true)
 		];
 
 	bInteractive = InArgs._bInteractive;

@@ -7,6 +7,8 @@
 
 void UInnoCardList::SynchronizeProperties()
 {
+	Super::SynchronizeProperties();
+
 	if (MyWidget.IsValid())
 	{
 		MyWidget->UpdateFlags(bInteractive);
@@ -68,4 +70,14 @@ void UInnoCardList::Update(const TArray<int32>& Cards)
 		UE_LOG(LogInno, Warning, TEXT("UInnoCardList::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
 	}
 #endif // UE_BUILD_DEBUG
+}
+
+void UInnoCardList::SetIsInteractive(bool bNewInteractive)
+{
+	bInteractive = bNewInteractive;
+
+	if (MyWidget.IsValid())
+	{
+		MyWidget->UpdateFlags(bInteractive);
+	}
 }

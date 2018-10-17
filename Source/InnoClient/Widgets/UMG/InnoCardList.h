@@ -55,6 +55,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void Update(const TArray<int32>& Cards);
 
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void SetIsInteractive(bool bNewInteractive);
+
 	/** Called when the top card is clicked */
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FOnCardClickedEvent OnCardClicked;
