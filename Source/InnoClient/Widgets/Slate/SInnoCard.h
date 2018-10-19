@@ -2,14 +2,10 @@
 
 #include "SlateBasics.h"
 #include "InnoCards.h"
-#include "Widgets/Layout/SScaleBox.h"
-#include "Widgets/Styles/InnoCardWidgetStyle.h"
-
+#include "Widgets/Slate/SInnoCardBase.h"
 
 class INNOCLIENT_API SInnoCardIcon : public SCompoundWidget
 {
-
-public:
 	SLATE_BEGIN_ARGS(SInnoCardIcon)
 		: _Icon(EInnoResource::IR_Hex)
 		, _Style(nullptr)
@@ -21,10 +17,13 @@ public:
 	void Construct(const FArguments& args);
 
 protected:
+	// Brush for Image to use
 	FSlateBrush IconBrush;
 
 	TSharedPtr<SImage> Img;
 
+	// Is this icon visible in the stack.
+	// If not, it will be grayed out.
 	bool bVisible;
 
 public:
@@ -36,34 +35,36 @@ public:
 
 		if (Img.IsValid())
 		{
-			Img->SetColorAndOpacity(bVisible ? FLinearColor::White : FLinearColor::Gray);
+			Img->SetColorAndOpacity(bVisible ? FLinearColor::White : FLinearColor(.5, .5, .5, .5));
 		}
 	}
 };
 
-class INNOCLIENT_API SInnoCard : public SCompoundWidget
+class INNOCLIENT_API SInnoCard : public SInnoCardBase
 {
 public:
-	DECLARE_DELEGATE_RetVal_OneParam(FReply, FOnCardClicked, int32);
-	DECLARE_DELEGATE_OneParam(FOnCardSimple, int32);
-
 	SLATE_BEGIN_ARGS(SInnoCard)
-		: _StyleOverride(nullptr)
+		: _Style(&FInnoWidgetStyles::Get().GetWidgetStyle<FInnoCardStyle>("Style_InnoCard"))
 	{}
+	/** Card struct */
 	SLATE_ARGUMENT(FInnoCard, Card)
-	SLATE_ARGUMENT(const FInnoCardStyle*, StyleOverride)
+	/** Style override. If not set, default one will be used. */
+	SLATE_STYLE_ARGUMENT(FInnoCardStyle, Style)
+	/** The delegate to execute when the card is clicked */
 	SLATE_EVENT(FOnCardClicked, OnClicked)
+	/** The delegate to execute when the card is hovered */
 	SLATE_EVENT(FOnCardSimple, OnHovered)
+	/** The delegate to execute when the card is not hovered anymore */
 	SLATE_EVENT(FOnCardSimple, OnUnhovered)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& args);
-	void UpdateContent(const FInnoCard& Card);
 
 protected:
-	// Widget wrapper. Sometimes we want to keep minimal height of the card even if there is no text.
-	TSharedPtr<SBox> SizeBox;
+	// Construct card's inner widgets
+	virtual TSharedPtr<SWidget> ConstructContents() override;
 
+protected:
 	// Card text, can be hidden
 	// Echo/Inspire
 	TSharedPtr<SVerticalBox> VBIconEffects;
@@ -78,9 +79,6 @@ protected:
 	// Resource icons
 	TArray<TSharedPtr<SInnoCardIcon>> ICIIcons;
 
-	// Colored card background
-	TSharedPtr<SBorder> BBackground;
-
 	// Colored age background
 	TSharedPtr<SBorder> BAge;
 
@@ -92,114 +90,28 @@ protected:
 
 	// Grid panel for card icons
 	TSharedPtr<SGridPanel> GPIcons;
-
-	int32 CardId;
-
-public:
-	FORCEINLINE int32 GetCardId() const { return CardId; }
-
-private:
-	const struct FInnoCardStyle* DefaultStyle;
-
-	const struct FInnoCardStyle* Style;
-
-public:
-	/**  */
-	void SetStyle(const struct FInnoCardStyle* StyleOverride)
-	{
-		if (StyleOverride)
-		{
-			Style = StyleOverride;
-		}
-		else
-		{
-			Style = DefaultStyle;
-		}
-	}
-
-private:
-	FReply OnClickedHandle() { return OnClicked.IsBound() ? OnClicked.Execute(CardId) : FReply::Handled(); }
-
-	void OnHoveredHandle() { if (OnHovered.IsBound()) OnHovered.Execute(CardId); }
-
-	void OnUnhoveredHandle() { if (OnUnhovered.IsBound()) OnUnhovered.Execute(CardId); }
-
-public:
-
-	/** The delegate to execute when the button is clicked */
-	FOnCardClicked OnClicked;
-
-	FOnCardSimple OnHovered;
-
-	FOnCardSimple OnUnhovered;
-
 protected:
-	bool bRespectMinimalHeight;
-
-	bool bHideHeader;
-
-	bool bHideText;
-
-	bool bSelectiveHideText;
-
+	bool bRespectMinimalHeight : 1;
+	bool bHideHeader : 1;
+	bool bHideText : 1;
+	bool bSelectiveHideText : 1;
 
 public:
-	void SetRespectMinimalHeight(bool bNewRespectMinimalHeight)
-	{
-		bRespectMinimalHeight = bNewRespectMinimalHeight;
-		if (SizeBox.IsValid() && Style)
-		{
-			SizeBox->SetMinDesiredHeight(bRespectMinimalHeight ? Style->MinHeight : FOptionalSize());
-		}
-	}
+	// Construct the inner contents of ther card
+	void UpdateContent(const FInnoCard& Card);
 
-	void SetHideHeader(bool bNewHideHeader)
-	{
-		bHideHeader = bNewHideHeader;
-		if (SBHeader.IsValid())
-		{
-			SBHeader->SetVisibility(bHideHeader ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
-		}
-	}
+	// If true, will keep minimal height even if there is little to no text.
+	void SetRespectMinimalHeight(bool bNewRespectMinimalHeight);
 
-	void SetHideText(bool bNewHideText)
-	{
-		bHideText = bNewHideText;
-		if (VBIconEffects.IsValid() && VBEffects.IsValid())
-		{
-			VBIconEffects->SetVisibility(bHideText ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
-			VBEffects->SetVisibility(bHideText ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
-		}
-	}
+	// Collapse card header.
+	void SetHideHeader(bool bNewHideHeader);
+
+	// Hide all text.
+	void SetHideText(bool bNewHideText);
 
 	// Hide text unless it is visible in the stack. Call StackInvalidate in order for this to take effect.
-	void SetSelectiveHideText(bool bNewSelectiveHideText)
-	{
-		bSelectiveHideText = bNewSelectiveHideText;
-	}
+	void SetSelectiveHideText(bool bNewSelectiveHideText);
 
 	// Call when stack has changed to grey/ungrey icons and to hide/reveal echoes and inspires.
-	void StackInvalidate(int32 SplayStart, int32 SplayEnd, bool bTopCard)
-	{
-
-		if (!bHideText && bSelectiveHideText)
-		{
-			bool bIconEffectVisible = false;
-
-			for (int32 i = 0; i < ICIIcons.Num(); ++i)
-			{
-				if (ICIIcons[i].IsValid())
-				{
-					const bool bVisible = bTopCard || (i >= SplayStart && i < SplayEnd);
-					ICIIcons[i]->SetVisible(bVisible);
-
-					bIconEffectVisible |= bVisible && (ICIIcons[i]->Icon == EInnoResource::IR_Echo || ICIIcons[i]->Icon == EInnoResource::IR_Inspire);
-				}
-
-			}
-
-			VBIconEffects->SetVisibility(bIconEffectVisible ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
-			VBEffects->SetVisibility(bTopCard ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
-		}
-	}
+	void StackInvalidate(int32 SplayStart, int32 SplayEnd, bool bTopCard);
 };

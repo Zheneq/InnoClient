@@ -2,9 +2,8 @@
 
 #include "SInnoCard.h"
 #include "SMyBorder.h"
-#include "Widgets/Styles/InnoWidgetStyles.h"
-#include "Widgets/Layout/SScaleBox.h"
 #include "SlateExtras.h"
+#include "Widgets/Layout/SScaleBox.h"
 #include "InnoCards.h"
 #include "GIInno.h"
 #include "InnoClient.h"
@@ -43,115 +42,77 @@ void SInnoCardIcon::Construct(const FArguments& InArgs)
 // BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION // disables compiler optimization (optimizing complex widgets is a chore for the compiler)
 void SInnoCard::Construct(const FArguments& InArgs)
 {
-	bCanTick = false;
-	DefaultStyle = &FInnoWidgetStyles::Get().GetWidgetStyle<FInnoCardStyle>("Style_InnoCard");
+	SInnoCardBase::Construct(SInnoCardBase::FArguments()
+		.Style(InArgs._Style)
+		.OnClicked(InArgs._OnClicked)
+		.OnHovered(InArgs._OnHovered)
+		.OnUnhovered(InArgs._OnUnhovered)
+	);
 
-	SetStyle(InArgs._StyleOverride);
 
-	check(Style);
-	
-	ChildSlot
+	UpdateContent(InArgs._Card);
+}
+
+TSharedPtr<SWidget> SInnoCard::ConstructContents()
+{
+	return SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.AutoHeight()
 		[
-			SAssignNew(SizeBox, SBox)
-			.WidthOverride(Style->Width)
-			.MinDesiredHeight(Style->MinHeight)
-			.VAlign(EVerticalAlignment::VAlign_Fill)
-			.HAlign(EHorizontalAlignment::HAlign_Fill)
+			// HEADER
+			SAssignNew(SBHeader, SBox)
+			.HeightOverride(Style->HeaderHeight)
 			[
-				SNew(SButton)
-				.ButtonStyle(&Style->ButtonStyle)
-				.OnClicked(this, &SInnoCard::OnClickedHandle)
-				.OnHovered(this, &SInnoCard::OnHoveredHandle)
-				.OnUnhovered(this, &SInnoCard::OnUnhoveredHandle)
-				.ClickMethod(EButtonClickMethod::PreciseClick)
-				.TouchMethod(EButtonTouchMethod::PreciseTap)
-				.ContentPadding(FMargin(0))
-				.VAlign(EVerticalAlignment::VAlign_Fill)
-				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.FillWidth(Style->IconsFillWidth)
 				[
-					SNew(SMyBorder)
-					.Padding(FMargin(Style->BorderThickness))
-					.ShowEffectWhenDisabled(false)
-					.BorderBackgroundColor(FLinearColor::Transparent)
-					.Visibility(EVisibility::HitTestInvisible)
-					.VAlign(EVerticalAlignment::VAlign_Fill)
-					.HAlign(EHorizontalAlignment::HAlign_Fill)
+					SNew(SScaleBox)
+					.Stretch(EStretch::ScaleToFit)
 					[
-						SAssignNew(BBackground, SBorder)
-						.Padding(Style->BorderPadding)
-						.ColorAndOpacity(Style->ColorAndOpacity)
-						.Clipping(EWidgetClipping::ClipToBounds)
-						.VAlign(EVerticalAlignment::VAlign_Fill)
-						.HAlign(EHorizontalAlignment::HAlign_Fill)
-						[
-							SNew(SVerticalBox)
-							+ SVerticalBox::Slot()
-							.AutoHeight()
-							[
-								// HEADER
-								SAssignNew(SBHeader, SBox)
-								.HeightOverride(Style->HeaderHeight)
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.FillWidth(Style->IconsFillWidth)
-									[
-										SNew(SScaleBox)
-										.Stretch(EStretch::ScaleToFit)
-										[
-											SAssignNew(GPIcons, SGridPanel)
-										]
-									]
-									+ SHorizontalBox::Slot()
-									.FillWidth(Style->NameFillWidth)
-									.VAlign(Style->NameVAlign)
-									.HAlign(Style->NameHAlign)
-									[
-										SAssignNew(TxtCardName, STextBlock)
-										.TextStyle(&Style->NameTextStyle)
-										.Margin(Style->NamePadding)
-										.Justification(Style->NameJustification)
-										.AutoWrapText(true)
-									]
-									+ SHorizontalBox::Slot()
-									.FillWidth(Style->AgeFillWidth)
-									[
-										SAssignNew(BAge, SBorder)
-										.ShowEffectWhenDisabled(false)
-										.VAlign(EVerticalAlignment::VAlign_Center)
-										[
-											SAssignNew(TxtAge, STextBlock)
-											.TextStyle(&Style->AgeTextStyle)
-											.Margin(Style->AgePadding)
-										]
-									]
-								]
-							]
-							+ SVerticalBox::Slot()
-							.AutoHeight()
-							.VAlign(EVerticalAlignment::VAlign_Fill)
-							.HAlign(EHorizontalAlignment::HAlign_Fill)
-							[
-								SAssignNew(VBIconEffects, SVerticalBox)
-							]
-							+ SVerticalBox::Slot()
-								.AutoHeight()
-								.VAlign(EVerticalAlignment::VAlign_Fill)
-								.HAlign(EHorizontalAlignment::HAlign_Fill)
-								[
-									SAssignNew(VBEffects, SVerticalBox)
-								]
-						]
+						SAssignNew(GPIcons, SGridPanel)
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(Style->NameFillWidth)
+				.VAlign(Style->NameVAlign)
+				.HAlign(Style->NameHAlign)
+				[
+					SAssignNew(TxtCardName, STextBlock)
+					.TextStyle(&Style->NameTextStyle)
+					.Margin(Style->NamePadding)
+					.Justification(Style->NameJustification)
+					.AutoWrapText(true)
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(Style->AgeFillWidth)
+				[
+					SAssignNew(BAge, SBorder)
+					.ShowEffectWhenDisabled(false)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						SAssignNew(TxtAge, STextBlock)
+						.TextStyle(&Style->AgeTextStyle)
+						.Margin(Style->AgePadding)
 					]
 				]
 			]
+		]
+		// Card text
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.VAlign(EVerticalAlignment::VAlign_Fill)
+		.HAlign(EHorizontalAlignment::HAlign_Fill)
+		[
+			SAssignNew(VBIconEffects, SVerticalBox)
+		]
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.VAlign(EVerticalAlignment::VAlign_Fill)
+		.HAlign(EHorizontalAlignment::HAlign_Fill)
+		[
+			SAssignNew(VBEffects, SVerticalBox)
 		];
-
-	UpdateContent(InArgs._Card);
-
-	OnClicked = InArgs._OnClicked;
-	OnHovered = InArgs._OnHovered;
-	OnUnhovered = InArgs._OnUnhovered;
 }
 
 void SInnoCard::UpdateContent(const FInnoCard& Card)
@@ -277,13 +238,13 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 			[
 				SNew(SRichTextBlock)
 				.Text(Card.Karma)
-			.WrapTextAt(Style->DogmaWrapTextAt)
-			.TextStyle(&Style->KarmaTextStyle)
-			.Margin(Style->DogmaKarmaPadding)
-			.LineHeightPercentage(Style->KarmaLineHeightPercentage)
-			.Justification(Style->KarmaJustification)
-			.DecoratorStyleSet(&FInnoWidgetStyles::Get())
-			+ SRichTextBlock::ImageDecorator()
+				.WrapTextAt(Style->DogmaWrapTextAt)
+				.TextStyle(&Style->KarmaTextStyle)
+				.Margin(Style->DogmaKarmaPadding)
+				.LineHeightPercentage(Style->KarmaLineHeightPercentage)
+				.Justification(Style->KarmaJustification)
+				.DecoratorStyleSet(&FInnoWidgetStyles::Get())
+				+ SRichTextBlock::ImageDecorator()
 			];
 	}
 
@@ -307,3 +268,60 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 	}
 }
 // END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+void SInnoCard::SetRespectMinimalHeight(bool bNewRespectMinimalHeight)
+{
+	bRespectMinimalHeight = bNewRespectMinimalHeight;
+	if (SizeBox.IsValid() && Style)
+	{
+		SizeBox->SetMinDesiredHeight(bRespectMinimalHeight ? Style->MinHeight : FOptionalSize());
+	}
+}
+
+void SInnoCard::SetHideHeader(bool bNewHideHeader)
+{
+	bHideHeader = bNewHideHeader;
+	if (SBHeader.IsValid())
+	{
+		SBHeader->SetVisibility(bHideHeader ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+	}
+}
+
+void SInnoCard::SetHideText(bool bNewHideText)
+{
+	bHideText = bNewHideText;
+	if (VBIconEffects.IsValid() && VBEffects.IsValid())
+	{
+		VBIconEffects->SetVisibility(bHideText ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+		VBEffects->SetVisibility(bHideText ? EVisibility::Collapsed : EVisibility::HitTestInvisible);
+	}
+}
+
+void SInnoCard::SetSelectiveHideText(bool bNewSelectiveHideText)
+{
+	bSelectiveHideText = bNewSelectiveHideText;
+}
+
+void SInnoCard::StackInvalidate(int32 SplayStart, int32 SplayEnd, bool bTopCard)
+{
+
+	if (!bHideText && bSelectiveHideText)
+	{
+		bool bIconEffectVisible = false;
+
+		for (int32 i = 0; i < ICIIcons.Num(); ++i)
+		{
+			if (ICIIcons[i].IsValid())
+			{
+				const bool bVisible = bTopCard || (i >= SplayStart && i < SplayEnd);
+				ICIIcons[i]->SetVisible(bVisible);
+
+				bIconEffectVisible |= bVisible && (ICIIcons[i]->Icon == EInnoResource::IR_Echo || ICIIcons[i]->Icon == EInnoResource::IR_Inspire);
+			}
+
+		}
+
+		VBIconEffects->SetVisibility(bIconEffectVisible ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
+		VBEffects->SetVisibility(bTopCard ? EVisibility::HitTestInvisible : EVisibility::Collapsed);
+	}
+}
