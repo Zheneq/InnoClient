@@ -81,12 +81,13 @@ void SInnoCardViewPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FA
 		return;
 	}
 
+	ChildEndsAt.Empty(Children.Num());
+
 	if (/*bIsSelected ||*/ TotalSpace > AllottedSpace)
 	{
 		// Minimal space a widget can occupy (size of the widget that is far enough from the selecfed one)
 		const float MinimalSpace = (AllottedSpace - SelectedTotalSpace) / (VisibleChildrenNum - SelectedTotalFactor);
 
-		ChildEndsAt.Empty();
 
 		float CurChildOffset = 0;
 
