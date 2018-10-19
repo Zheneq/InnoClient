@@ -4,6 +4,7 @@
 #include "InnoClient.h"
 #include "GIInno.h"
 #include "InnoCardData.h"
+#include "Regex.h"
 
 
 EInnoColor UInnoFunctionLibrary::ColorFromString(const UObject* WorldContextObject, FString String)
@@ -137,51 +138,119 @@ bool UInnoFunctionLibrary::ParseJson(FString SerializedJson, TSharedPtr<FJsonVal
 	return FJsonSerializer::Deserialize(Reader, JsonArray);
 }
 
+#define REGEX_CARD_NAME TEXT("<span cardnum=\\\"(\\d+)\\\"[^>]+>([^<]+)</span>")
+#define REGEX_CARD_SET_AGE TEXT("<span class=\\\"age ([befc])[^>]+>(\\d+)</span>s*")
+#define REGEX_CARD TEXT("(?:") REGEX_CARD_NAME TEXT("){0,1}") REGEX_CARD_SET_AGE
+#define REGEX_AGE TEXT("<span class=(?:\\\"){0,1}age[^>]+>(\\d+)</span>")
+#define REGEX_ICON TEXT("<img src=\\\"/static/icons/inline\\-([^.]+).png\\\">")
+
+FORCEINLINE void ReplaceMatch(FString& String, FRegexMatcher& Matcher, const FString& Replace)
+{
+	String = String.Left(Matcher.GetCaptureGroupBeginning(0)) + Replace + String.Mid(Matcher.GetCaptureGroupEnding(0));
+}
+
+// TODO split this function? one for cards, one for log
 FString UInnoFunctionLibrary::DeHTML(FString String)
 {
-	int32 start = 0, end;
-
-	// Replace age tags
-	String.ReplaceInline(TEXT("<span class=age>"), TEXT("[Age"));
-	String.ReplaceInline(TEXT("</span>"), TEXT("]"));
-
-	// Replace resource icon tags
-	while (true)
+	// Cards in log
 	{
-		start = String.Find(TEXT("<"), ESearchCase::IgnoreCase, ESearchDir::FromStart, start);
-		end = String.Find(TEXT(">"), ESearchCase::IgnoreCase, ESearchDir::FromStart, start);
-
-		if (start != INDEX_NONE && end != INDEX_NONE)
+		const FRegexPattern RegexCard(REGEX_CARD);
+		while (true)
 		{
-			const int32 len = end - start + 1;
-
-			FString TagToRemove = String.Mid(start, len);
-			String.RemoveAt(start, len);
-
-			// If the tag contains a resource picture
-			const FString InlinePicLeft = TEXT("<img src=\"/static/icons/inline-");
-			const FString InlinePicRight = TEXT(".png\">");
-			if (TagToRemove.StartsWith(InlinePicLeft) && TagToRemove.EndsWith(InlinePicRight))
+			FRegexMatcher Matcher(RegexCard, String);
+			if (Matcher.FindNext())
 			{
+				const int32 Card = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+				const FString Name = Matcher.GetCaptureGroup(2);
+				const FString Set = Matcher.GetCaptureGroup(3);
+				const int32 Age = FCString::Atoi(*Matcher.GetCaptureGroup(4));
 
-				FString Replace = FString::Printf(TEXT("[%s]"), *TagToRemove.Mid(InlinePicLeft.Len(), TagToRemove.Len() - InlinePicRight.Len() - InlinePicLeft.Len()));
-				String.InsertAt(start, Replace);
-
-				start += Replace.Len();
+				if (Card)
+				{
+					// ReplaceMatch(String, Matcher, FString::Printf("<Inno.InlineCard>%d</>", Card));
+					ReplaceMatch(String, Matcher, FString::Printf(TEXT("[%s (%s%d)]"), *Name, *Set, Age));
+				}
+				else
+				{
+					ReplaceMatch(String, Matcher, FString::Printf(TEXT("[%s%d]"), *Set, Age));
+				}
 			}
-
-		}
-		else
-		{
-			break;
+			else
+			{
+				break;
+			}
 		}
 	}
 
-	String.ReplaceInline(TEXT("["), TEXT("<img src=\""));
-	String.ReplaceInline(TEXT("]"), TEXT("\"/>"));
+	// Replace age tags
+	{
+		const FRegexPattern Regex(REGEX_AGE);
+		FRegexMatcher Matcher(Regex, String);
+		if (Matcher.FindNext())
+		{
+			const int32 Age = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+			ReplaceMatch(String, Matcher, FString::Printf(TEXT("{%s}"), Age));
+		}
+	}
 
+	// Replace resource icon tags
+	{
+		const FRegexPattern RegexIcon(REGEX_ICON);
+		while (true)
+		{
+			FRegexMatcher Matcher(RegexIcon, String);
+			if (Matcher.FindNext())
+			{
+				const FString Icon = Matcher.GetCaptureGroup(1);
+				ReplaceMatch(String, Matcher, FString::Printf(TEXT("{%s}"), *Icon));
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	// Remove all other tags
+	{
+		const FRegexPattern Regex(TEXT("<([^>]+)>"));
+		const FString EmptyString;
+		while (true)
+		{
+			FRegexMatcher Matcher(Regex, String);
+			if (Matcher.FindNext())
+			{
+				ReplaceMatch(String, Matcher, EmptyString);
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	// Replace brackets with RichTextBlock tags
+	{
+		const FRegexPattern Regex(TEXT("\\{([^\\}]+)\\}"));
+		while (true)
+		{
+			FRegexMatcher Matcher(Regex, String);
+			if (Matcher.FindNext())
+			{
+				const FString Name = Matcher.GetCaptureGroup(1);
+				ReplaceMatch(String, Matcher, FString::Printf(TEXT("<img src=\"%s\"/>"), *Name));
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
 	// Clean the string
 	String.ReplaceInline(TEXT("&mdash;"), TEXT("~"));
+	String.ReplaceInline(TEXT("&lt;"), TEXT("<"));
+	String.ReplaceInline(TEXT("&gt;"), TEXT(">"));
 	String.ReplaceInline(TEXT("."), TEXT(". "));
 	String.ReplaceInline(TEXT("\n"), TEXT(" "));
 	String.ReplaceInline(TEXT("\r"), TEXT(" "));
@@ -190,3 +259,9 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 
 	return String;
 }
+
+#undef REGEX_CARD_NAME
+#undef REGEX_CARD_SET_AGE
+#undef REGEX_CARD
+#undef REGEX_AGE
+#undef REGEX_ICON
