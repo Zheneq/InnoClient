@@ -249,6 +249,7 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 	
 	// Clean the string
 	String.ReplaceInline(TEXT("&mdash;"), TEXT("~"));
+	String.ReplaceInline(TEXT("&ndash;"), TEXT("-"));
 	String.ReplaceInline(TEXT("&lt;"), TEXT("<"));
 	String.ReplaceInline(TEXT("&gt;"), TEXT(">"));
 	String.ReplaceInline(TEXT("."), TEXT(". "));
