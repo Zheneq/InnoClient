@@ -119,6 +119,23 @@ struct FInnoCardRaw
 	FInnoCardRaw() : Age(-1), Set(-1) {}
 };
 
+USTRUCT(BlueprintType)
+struct FInnoCardInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 CardId;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Set;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Age;
+
+	FInnoCardInfo() : CardId(0), Set(0), Age(0) {}
+};
+
 /**
  * 
  */
