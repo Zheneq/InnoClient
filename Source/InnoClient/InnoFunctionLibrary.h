@@ -29,6 +29,12 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
 		static const FString& StringFromColor(EInnoColor InColor);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static const FString& StringFromSet(int32 Set);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static int32 SetFromString(const FString& String);
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
 		static EInnoResource ResourceFromString(const UObject* WorldContextObject, FString String);
 
@@ -48,5 +54,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
 		static FString DeHTML(FString String);
+
+	// Check if this choose option is a card
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static bool IsCard(const FString& String);
+
+	UFUNCTION(BlueprintCallable, Category = "Inno")
+		static FInnoCardInfo StringToCard(const FString& String);
 	
 };

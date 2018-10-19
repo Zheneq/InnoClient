@@ -49,6 +49,56 @@ EInnoResource UInnoFunctionLibrary::ResourceFromString(const UObject* WorldConte
 	return (GI && GI->ResourceFromString.Contains(String)) ? GI->ResourceFromString[String] : EInnoResource::IR_Hex;
 }
 
+const FString& UInnoFunctionLibrary::StringFromSet(int32 Set)
+{
+	static const FString Base      = FString("b");
+	static const FString Echo      = FString("e");
+	static const FString Figures   = FString("f");
+	static const FString Cities    = FString("c");
+	static const FString Artifacts = FString("a");
+	static const FString Def       = FString("");
+
+	switch (Set)
+	{
+	case 0:
+		return Base;
+	case 1:
+		return Echo;
+	case 2:
+		return Figures;
+	case 3:
+		return Cities;
+	case 4:
+		return Artifacts;
+	default:
+		return Def;
+	}
+}
+
+int32 UInnoFunctionLibrary::SetFromString(const FString& String)
+{
+	if (String.Len() != 1)
+	{
+		return -1;
+	}
+
+	switch (String[0])
+	{
+	case L'b':
+		return 0;
+	case L'e':
+		return 1;
+	case L'c':
+		return 2;
+	case L'f':
+		return 3;
+	case L'a':
+		return 4;
+	default:
+		return -1;
+	}
+}
+
 int32 UInnoFunctionLibrary::SplayStart(EInnoSplay Splay)
 {
 	switch (Splay)
@@ -149,7 +199,6 @@ FORCEINLINE void ReplaceMatch(FString& String, FRegexMatcher& Matcher, const FSt
 	String = String.Left(Matcher.GetCaptureGroupBeginning(0)) + Replace + String.Mid(Matcher.GetCaptureGroupEnding(0));
 }
 
-// TODO split this function? one for cards, one for log
 FString UInnoFunctionLibrary::DeHTML(FString String)
 {
 	// Cards in log
@@ -184,13 +233,13 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 
 	// Replace age tags
 	{
-		const FRegexPattern Regex(REGEX_AGE);
-		FRegexMatcher Matcher(Regex, String);
-		if (Matcher.FindNext())
-		{
-			const int32 Age = FCString::Atoi(*Matcher.GetCaptureGroup(1));
-			ReplaceMatch(String, Matcher, FString::Printf(TEXT("{%s}"), Age));
-		}
+	const FRegexPattern Regex(REGEX_AGE);
+	FRegexMatcher Matcher(Regex, String);
+	if (Matcher.FindNext())
+	{
+		const int32 Age = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+		ReplaceMatch(String, Matcher, FString::Printf(TEXT("{%s}"), Age));
+	}
 	}
 
 	// Replace resource icon tags
@@ -246,7 +295,7 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 			}
 		}
 	}
-	
+
 	// Clean the string
 	String.ReplaceInline(TEXT("&mdash;"), TEXT("~"));
 	String.ReplaceInline(TEXT("&ndash;"), TEXT("-"));
@@ -259,6 +308,29 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 	while (String.ReplaceInline(TEXT("  "), TEXT(" ")));
 
 	return String;
+}
+
+bool UInnoFunctionLibrary::IsCard(const FString& String)
+{
+	const FRegexPattern RegexCard(REGEX_CARD);
+	FRegexMatcher Matcher(RegexCard, String);
+	return Matcher.FindNext();
+}
+
+FInnoCardInfo UInnoFunctionLibrary::StringToCard(const FString& String)
+{
+	FInnoCardInfo Result;
+
+	const FRegexPattern RegexCard(REGEX_CARD);
+	FRegexMatcher Matcher(RegexCard, String);
+	if (Matcher.FindNext())
+	{
+		Result.CardId = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+		Result.Set    = UInnoFunctionLibrary::SetFromString(Matcher.GetCaptureGroup(3));
+		Result.Age    = FCString::Atoi(*Matcher.GetCaptureGroup(4));
+	}
+
+	return Result;
 }
 
 #undef REGEX_CARD_NAME
