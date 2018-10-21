@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "UObject/NoExportTypes.h"
 #include "InnoCards.h"
 #include "GMInno.h"

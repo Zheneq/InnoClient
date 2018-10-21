@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Engine/DataAsset.h"
 #include "SlateBasics.h"
 #include "SlateWidgetStyleContainerBase.h"
 #include "SlateWidgetStyle.h"
