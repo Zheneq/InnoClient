@@ -35,9 +35,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FCardEvent OnUnhovered;
 
-	FReply SlateHandleClicked(int32 CardId);
-	void SlateHandleHovered(int32 CardId);
-	void SlateHandleUnhovered(int32 CardId);
+	FReply SlateHandleClicked(FInnoCardInfo CardId);
+	void SlateHandleHovered(FInnoCardInfo CardId);
+	void SlateHandleUnhovered(FInnoCardInfo CardId);
 	
 	UInnoCardWidget() : CardId(0) {}
 public:

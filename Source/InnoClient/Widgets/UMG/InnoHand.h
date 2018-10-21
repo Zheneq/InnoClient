@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
 #include "Widgets/Slate/SInnoHand.h"
+#include "InnoCards.h"
 #include "InnoHand.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardInHandClickedEvent, int32, Card);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardInHandClickedEvent, FInnoCardInfo, Card);
 
 /**
  * 
@@ -63,5 +64,5 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FOnCardInHandClickedEvent OnCardClicked;
 
-	FReply SlateHandleClicked(int32 CardId);
+	FReply SlateHandleClicked(FInnoCardInfo CardId);
 };

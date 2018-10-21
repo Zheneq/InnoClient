@@ -2,6 +2,7 @@
 
 #include "SInnoCardList.h"
 #include "CardWidgetManager.h"
+#include "Widgets/Slate/SInnoCardPlaceholder.h"
 #include "InnoFunctionLibrary.h"
 #include "InnoClient.h"
 #include "Engine.h"
@@ -14,71 +15,140 @@ void SInnoCardList::Construct(const FArguments& InArgs)
 			.UseAllottedWidth(true)
 		];
 
-	bInteractive = InArgs._bInteractive;
 	OnCardClicked = InArgs._OnCardClicked;
+	OnSelectionChanged = InArgs._OnSelectionChanged;
+	OnSelectionValidityChanged = InArgs._OnSelectionValidityChanged;
 	Tag = InArgs._Tag;
 
-	SetVisibility(bInteractive ? EVisibility::SelfHitTestInvisible : EVisibility::HitTestInvisible);
+	SetVisibility(EVisibility::SelfHitTestInvisible);
 }
 
-void SInnoCardList::UpdateFlags(bool bNewIsInteractive)
+void SInnoCardList::Update(TArray<TSharedPtr<SInnoCardBase>>& Cards, int32 NewSelectMin, int32 NewSelectMax)
 {
-	bInteractive = bNewIsInteractive;
-	SetVisibility(bInteractive ? EVisibility::SelfHitTestInvisible : EVisibility::HitTestInvisible);
-}
+	MyCards = Cards;
+	SelectedCards.Empty();
+	
+	SelectMin = FMath::Max(0, NewSelectMin);
+	SelectMax = FMath::Max(SelectMin, NewSelectMax);
+	SetVisibility(SelectMax != 0 ? EVisibility::SelfHitTestInvisible : EVisibility::HitTestInvisible);
 
-void SInnoCardList::Update(const TArray<TSharedPtr<SInnoCard>>& Cards)
-{
 	if (WBox.IsValid())
 	{
 		WBox->ClearChildren();
 		State.Empty();
 
-		for (TSharedPtr<SInnoCard> CardWidget : Cards)
+		if (SelectMin == 0 && SelectMax == 1) // None is an option
 		{
-			State.Add(CardWidget->GetCardId());
-
-			CardWidget->SetRespectMinimalHeight(true);
-			CardWidget->SetHideText(false);
-			CardWidget->SetHideHeader(false);
-			CardWidget->SetSelectiveHideText(false);
-			if (bInteractive)
-			{
-				CardWidget->OnClicked.BindRaw(this, &SInnoCardList::CardClicked);
-			}
-//			else
-//			{
-//				CardWidget->SetEnabled(false);
-//			}
-
 			WBox->AddSlot()
 				.Padding(FMargin(4))
 				[
-					CardWidget.ToSharedRef()
+					SNew(SInnoCardPlaceholder)
+					.Text(NSLOCTEXT("CardListWidget", "OptionNone", "None"))
+					.OnClicked(this, &SInnoCardList::CardClicked)
 				];
 		}
 
+		for (int32 i = 0; i < MyCards.Num(); ++i)
+		{
+			TSharedPtr<SInnoCardBase> CardWidget = MyCards[i];
+
+			CardWidget->SetIndex(i);
+
+			State.Add(CardWidget->GetCardInfo());
+
+			AddCard_Internal(CardWidget);
+		}
 	}
 }
 
-FReply SInnoCardList::CardClicked(int32 CardId)
+void SInnoCardList::UpdateOptions(int32 NewSelectMin, int32 NewSelectMax)
 {
-	return OnCardClicked.IsBound() ? OnCardClicked.Execute(CardId) : FReply::Unhandled();
+	Update(MyCards, NewSelectMin, NewSelectMax);
+}
+
+void SInnoCardList::AddCard_Internal(const TSharedPtr<SInnoCardBase>& CardWidget)
+{
+	CardWidget->ResetAppearance();
+	if (SelectMax > 0)
+	{
+		CardWidget->OnClicked.BindRaw(this, SelectMax == 1 ? &SInnoCardList::CardClicked : &SInnoCardList::CardToggled);
+	}
+	//			else
+	//			{
+	//				CardWidget->SetEnabled(false);
+	//			}
+
+	WBox->AddSlot()
+		.Padding(FMargin(4))
+		[
+			CardWidget.ToSharedRef()
+		];
+}
+
+FReply SInnoCardList::CardClicked(FInnoCardInfo Card)
+{
+	return OnCardClicked.IsBound() ? OnCardClicked.Execute(Card) : FReply::Unhandled();
+}
+
+FReply SInnoCardList::CardToggled(FInnoCardInfo Card)
+{
+	bool bIsNowOn = false;
+	if (!SelectedCards.Remove(Card.Index))
+	{
+		SelectedCards.Add(Card.Index);
+		bIsNowOn = true;
+	}
+
+	const int32 SelectedNum = SelectedCards.Num();
+	bool bWasSelectionValid = bIsSelectionValid;
+	bIsSelectionValid = SelectedNum >= SelectMin && SelectedNum <= SelectMax;
+
+	const int32 Index = State.Find(Card);
+	if (Index != INDEX_NONE)
+	{
+		const auto WPtr = MyCards[Index];
+		if (WPtr.IsValid())
+		{
+			WPtr->SetIsHighlighted(bIsNowOn);
+		}
+	}
+	else
+	{
+		UE_LOG(LogInno, Warning, TEXT("SInnoCardList::CardToggled: I don't have card %s!"), *Card.ToString());
+		SelectedCards.Remove(Card.Index);
+		return FReply::Handled();
+	}
+
+	if (OnSelectionChanged.IsBound())
+	{
+		OnSelectionChanged.Execute(Card);
+	}
+
+	if (bWasSelectionValid != bIsSelectionValid && OnSelectionValidityChanged.IsBound())
+	{
+		OnSelectionValidityChanged.Execute(bIsSelectionValid);
+	}
+
+	return FReply::Handled();
 }
 
 TSharedPtr<SInnoCard> SInnoCardList::PerformCardRemoval(uint32 Position)
 {
 	const TSharedRef<SWidget> WidgetPtr = WBox->GetChildren()->GetChildAt(Position);
 	WBox->RemoveSlot(WidgetPtr);
+	MyCards.RemoveAt(Position);
 	return StaticCastSharedRef<SInnoCard>(WidgetPtr);
 }
 
 void SInnoCardList::PerformCardAddition(TSharedRef<SInnoCard> CardWidget, uint32 Position)
 {
 	// Card list ignores position
-	WBox->AddSlot()
-		.Padding(FMargin(4))
-		[
-			CardWidget
-		];
+	const bool bNeedRebuildState = MyCards.IsValidIndex(Position);
+	MyCards.Add(CardWidget);
+	AddCard_Internal(CardWidget);
+
+	if (bNeedRebuildState)
+	{
+		RebuildState(MyCards);
+	}
 }

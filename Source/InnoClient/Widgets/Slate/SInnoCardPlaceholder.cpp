@@ -7,7 +7,6 @@
 void SInnoCardPlaceholder::Construct(const FArguments& InArgs)
 {
 	Text = InArgs._Text;
-	CardId = -1;
 
 	SInnoCardBase::Construct(SInnoCardBase::FArguments()
 		.Style(InArgs._Style)
@@ -19,7 +18,7 @@ void SInnoCardPlaceholder::Construct(const FArguments& InArgs)
 
 TSharedPtr<SWidget> SInnoCardPlaceholder::ConstructContents()
 {
-	return SNew(STextBlock)
+	return SAssignNew(TxtText, STextBlock)
 		.Text(Text)
 		.TextStyle(&Style->NameTextStyle)
 		.Justification(ETextJustify::Center)

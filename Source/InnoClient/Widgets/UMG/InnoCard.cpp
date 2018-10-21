@@ -37,21 +37,21 @@ void UInnoCardWidget::SetCardId(int32 InCardId)
 	SynchronizeProperties();
 }
 
-FReply UInnoCardWidget::SlateHandleClicked(int32 CardId)
+FReply UInnoCardWidget::SlateHandleClicked(FInnoCardInfo Card)
 {
-	OnClicked.Broadcast(CardId);
+	OnClicked.Broadcast(Card.CardId);
 
 	return FReply::Handled();
 }
 
-void UInnoCardWidget::SlateHandleHovered(int32 CardId)
+void UInnoCardWidget::SlateHandleHovered(FInnoCardInfo Card)
 {
-	OnHovered.Broadcast(CardId);
+	OnHovered.Broadcast(Card.CardId);
 }
 
-void UInnoCardWidget::SlateHandleUnhovered(int32 CardId)
+void UInnoCardWidget::SlateHandleUnhovered(FInnoCardInfo Card)
 {
-	OnUnhovered.Broadcast(CardId);
+	OnUnhovered.Broadcast(Card.CardId);
 }
 
 const FText UInnoCardWidget::GetPaletteCategory()

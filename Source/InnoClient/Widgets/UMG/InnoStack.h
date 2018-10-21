@@ -68,5 +68,5 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FOnTopCardClickedEvent OnTopCardClicked;
 
-	FReply SlateHandleClicked(int32 CardId);
+	FReply SlateHandleClicked(FInnoCardInfo Card);
 };

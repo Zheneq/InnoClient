@@ -19,6 +19,11 @@ class INNOCLIENT_API SInnoHand : public SCompoundWidget, public ISlateInnoState
 protected:
 	TSharedPtr<class SInnoCardViewPanel> Panel;
 
+	// Cards
+	TArray< TSharedPtr<class SInnoCard> > MyCards;
+
+	void AddCard_Internal(TSharedPtr<SInnoCard> Card);
+
 public:
 	// Update contents
 	void Update(TArray<TSharedPtr<SInnoCard>> Cards);
@@ -27,7 +32,7 @@ public:
 	void SetChildrenEnabled(bool bNewChildrenEnabled);
 
 	/** Click event handling. */
-	FReply CardClicked(int32 CardId);
+	FReply CardClicked(FInnoCardInfo Card);
 	SInnoCard::FOnCardClicked OnCardClicked;
 
 private:

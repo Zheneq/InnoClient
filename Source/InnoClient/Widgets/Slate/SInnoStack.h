@@ -26,6 +26,12 @@ protected:
 	// Card widgets we have
 	TArray<TSharedPtr<SInnoCard>> MyCards;
 
+	// Internal routine to add card in the specified position
+	void AddCard_Internal(TSharedPtr<SInnoCard> Card, int32 Position);
+
+	// Internal routine to invalidate card flags and bindings
+	void InvalidateCard_Internal(int32 Position);
+
 	// Current splay
 	int32 MySplayStart, MySplayEnd;
 
@@ -45,7 +51,7 @@ public:
 	// Update display/interactability
 	void UpdateFlags(bool bNewIsLocalPlayer, bool bNewHideText);
 
-	FReply TopCardClicked(int32 CardId);
+	FReply TopCardClicked(FInnoCardInfo Card);
 
 	SInnoCard::FOnCardClicked OnTopCardClicked;
 

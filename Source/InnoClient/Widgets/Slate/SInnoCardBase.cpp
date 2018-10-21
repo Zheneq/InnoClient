@@ -12,7 +12,6 @@ void SInnoCardBase::Construct(const FArguments& InArgs)
 	Style = InArgs._Style;
 
 	bCanTick = false;
-	CardId = 0;
 
 	ChildSlot
 		[
@@ -27,9 +26,21 @@ void SInnoCardBase::Construct(const FArguments& InArgs)
 // BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION // disables compiler optimization (optimizing complex widgets is a chore for the compiler)
 TSharedPtr<SWidget> SInnoCardBase::ConstructCard()
 {
-	return SAssignNew(SizeBox, SBox)
-			.WidthOverride(Style->Width)
-			.MinDesiredHeight(Style->MinHeight)
+	const float HighlightThickness = 4;
+
+	return
+		SAssignNew(SizeBox, SBox)
+		.WidthOverride(Style->Width)
+		.MinDesiredHeight(Style->MinHeight)
+		.VAlign(EVerticalAlignment::VAlign_Fill)
+		.HAlign(EHorizontalAlignment::HAlign_Fill)
+		.Padding(FMargin(-HighlightThickness))
+		[
+			SAssignNew(MBHighlight, SMyBorder)
+			.Padding(FMargin(HighlightThickness))
+			.ShowEffectWhenDisabled(false)
+			.BorderBackgroundColor(FLinearColor::Transparent)
+			.Visibility(EVisibility::SelfHitTestInvisible)
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
 			[
@@ -63,7 +74,8 @@ TSharedPtr<SWidget> SInnoCardBase::ConstructCard()
 						]
 					]
 				]
-			];
+			]
+		];
 }
 // END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -74,14 +86,14 @@ TSharedPtr<SWidget> SInnoCardBase::ConstructContents()
 
 FReply SInnoCardBase::OnClickedHandle()
 {
-	return OnClicked.IsBound() ? OnClicked.Execute(CardId) : FReply::Handled();
+	return OnClicked.IsBound() ? OnClicked.Execute(CardInfo) : FReply::Handled();
 }
 
 void SInnoCardBase::OnHoveredHandle()
 {
 	if (OnHovered.IsBound())
 	{
-		OnHovered.Execute(CardId);
+		OnHovered.Execute(CardInfo);
 	}
 }
 
@@ -89,6 +101,19 @@ void SInnoCardBase::OnUnhoveredHandle()
 {
 	if (OnUnhovered.IsBound())
 	{
-		OnUnhovered.Execute(CardId);
+		OnUnhovered.Execute(CardInfo);
+	}
+}
+
+void SInnoCardBase::SetIsHighlighted(bool bNewIsHighlighted)
+{
+	if (bIsHighlighted != bNewIsHighlighted)
+	{
+		bIsHighlighted = bNewIsHighlighted;
+
+		if (MBHighlight.IsValid())
+		{
+			MBHighlight->SetBorderBackgroundColor(bIsHighlighted ? FLinearColor::White : FLinearColor::Transparent);
+		}
 	}
 }

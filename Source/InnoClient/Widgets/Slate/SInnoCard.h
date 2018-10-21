@@ -64,6 +64,10 @@ protected:
 	// Construct card's inner widgets
 	virtual TSharedPtr<SWidget> ConstructContents() override;
 
+public:
+	// Reset appearance to default
+	void ResetAppearance() override;
+
 protected:
 	// Card text, can be hidden
 	// Echo/Inspire

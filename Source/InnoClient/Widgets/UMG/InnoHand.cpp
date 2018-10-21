@@ -3,8 +3,8 @@
 #include "InnoHand.h"
 #include "GMInno.h"
 #include "CardWidgetManager.h"
-#include "Engine.h"
 #include "InnoClient.h"
+#include "Engine.h"
 
 void UInnoHand::ReleaseSlateResources(bool bReleaseChildren)
 {
@@ -27,9 +27,9 @@ const FText UInnoHand::GetPaletteCategory()
 	return NSLOCTEXT("UMG", "Innovation", "Innovation");
 }
 
-FReply UInnoHand::SlateHandleClicked(int32 CardId)
+FReply UInnoHand::SlateHandleClicked(FInnoCardInfo Card)
 {
-	OnCardClicked.Broadcast(CardId);
+	OnCardClicked.Broadcast(Card);
 
 	return FReply::Handled();
 }
@@ -44,7 +44,7 @@ void UInnoHand::Update(const TArray<int32>& Cards)
 
 	if (MyWidget.IsValid() && GM.IsValid())
 	{
-		if (MyWidget->GetState() != Cards)
+		if (!MyWidget->StateIsEqualTo(Cards))
 		{
 			TArray< TSharedPtr<SInnoCard> > NewWidgets;
 			for (const int32 CardId : Cards)

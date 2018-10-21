@@ -7,7 +7,8 @@
 #include "Widgets/Slate/SInnoCardList.h"
 #include "InnoCardList.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardClickedEvent, int32, Card);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardClickedEvent, int32, Index);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSelectionValidityEvent, bool, bIsNowValid);
 
 /**
  * 
@@ -45,22 +46,42 @@ protected:
 protected:
 	TWeakObjectPtr < class AGMInno > GM;
 
+
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
-		bool bInteractive;
+		int32 SelectMin;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
+		int32 SelectMax;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ExposeOnSpawn = true))
 		FName Tag;
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
-		void Update(const TArray<int32>& Cards);
+		void Update(const TArray<struct FInnoCardInfo>& Cards, int32 NewSelectMin = 0, int32 NewSelectMax = 0);
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
-		void SetIsInteractive(bool bNewInteractive);
+		void UpdateExplicit(const TArray<int32>& Cards, int32 NewSelectMin = 0, int32 NewSelectMax = 0);
+
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		void UpdateOptions(int32 NewSelectMin, int32 NewSelectMax);
+
+	UFUNCTION(BlueprintCallable, Category = "Innovation")
+		TArray<int32> GetSelectedIndices();
 
 	/** Called when the top card is clicked */
 	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
 		FOnCardClickedEvent OnCardClicked;
 
-	FReply SlateHandleClicked(int32 CardId);
+	/** Called when the top card is clicked */
+	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
+		FOnCardClickedEvent OnCardToggled;
+
+	/** Called when the top card is clicked */
+	UPROPERTY(BlueprintAssignable, Category = "Innovation|Event")
+		FOnSelectionValidityEvent OnSelectionValidityChanged;
+
+	FReply SlateHandleClicked(struct FInnoCardInfo CardId);
+	FReply SlateHandleSelection(struct FInnoCardInfo CardId);
+	void SlateHandleValidity(bool bIsNowValid);
 };

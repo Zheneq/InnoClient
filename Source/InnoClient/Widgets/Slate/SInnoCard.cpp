@@ -119,7 +119,7 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 {
 	check(Style && BBackground.IsValid() && BAge.IsValid() && TxtCardName.IsValid() && TxtAge.IsValid());
 
-	CardId = Card.Id;
+	CardInfo = FInnoCardInfo::FromCard(Card);
 
 	TxtCardName->SetText(Card.Name);
 	BBackground->SetBorderImage(Style->BackgroundColorBrush(Card.Color));
@@ -268,6 +268,14 @@ void SInnoCard::UpdateContent(const FInnoCard& Card)
 	}
 }
 // END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+void SInnoCard::ResetAppearance()
+{
+	SetRespectMinimalHeight(true);
+	SetHideText(false);
+	SetHideHeader(false);
+	SetSelectiveHideText(false);
+}
 
 void SInnoCard::SetRespectMinimalHeight(bool bNewRespectMinimalHeight)
 {

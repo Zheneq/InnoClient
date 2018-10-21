@@ -69,26 +69,41 @@ void SInnoStack::UpdateCards_Internal()
 		{
 			const TSharedPtr<SInnoCard> CardWidget = MyCards[i];
 
-			State.Add(CardWidget->GetCardId());
-
-			CardWidget->SetRespectMinimalHeight(false);
-			CardWidget->SetHideHeader(false);
-			CardWidget->SetEnabled(!i);
-			CardWidget->SetSelectiveHideText(!!i);
-			CardWidget->OnClicked.Unbind();
-
-			if (i == 0)
-			{
-				CardWidget->OnClicked.BindRaw(this, &SInnoStack::TopCardClicked);
-			}
-
-			VBox->AddSlot()
-				.Padding(FMargin(0, 2))
-				.AutoHeight()
-				[
-					CardWidget.ToSharedRef()
-				];
+			State.Add(CardWidget->GetCardInfo());
+			AddCard_Internal(CardWidget, i);
 		}
+	}
+}
+
+void SInnoStack::AddCard_Internal(TSharedPtr<SInnoCard> CardWidget, int32 Position)
+{
+	const bool bTopCard = !Position;
+
+	InvalidateCard_Internal(Position);
+
+	// (Position >= 0 ? VBox->InsertSlot(Position) : VBox->AddSlot()) // insert or append
+	VBox->InsertSlot(Position)
+		.Padding(FMargin(0, 2))
+		.AutoHeight()
+		[
+			CardWidget.ToSharedRef()
+		];
+}
+
+void SInnoStack::InvalidateCard_Internal(int32 Position)
+{
+	const bool bTopCard = !Position;
+	TSharedPtr<SInnoCard> CardWidget = MyCards[Position];
+
+	CardWidget->SetRespectMinimalHeight(false);
+	CardWidget->SetHideHeader(false);
+	CardWidget->SetEnabled(bTopCard);
+	CardWidget->SetSelectiveHideText(!bTopCard);
+	CardWidget->OnClicked.Unbind();
+
+	if (bTopCard)
+	{
+		CardWidget->OnClicked.BindRaw(this, &SInnoStack::TopCardClicked);
 	}
 }
 
@@ -115,13 +130,20 @@ void SInnoStack::UpdateSplay_Internal()
 	}
 }
 
-FReply SInnoStack::TopCardClicked(int32 CardId)
+FReply SInnoStack::TopCardClicked(FInnoCardInfo Card)
 {
-	return OnTopCardClicked.IsBound() ? OnTopCardClicked.Execute(CardId) : FReply::Unhandled();
+	return OnTopCardClicked.IsBound() ? OnTopCardClicked.Execute(Card) : FReply::Unhandled();
 }
 
 TSharedPtr<SInnoCard> SInnoStack::PerformCardRemoval(uint32 Position)
 {
+	MyCards.RemoveAt(Position);
+	if (Position == 0 && MyCards.Num() > 0)
+	{
+		// Invalidate new top card
+		InvalidateCard_Internal(0);
+	}
+
 	const TSharedRef<SWidget> WidgetPtr = VBox->GetChildren()->GetChildAt(Position);
 	VBox->RemoveSlot(WidgetPtr);
 	return StaticCastSharedRef<SInnoCard>(WidgetPtr);
@@ -129,9 +151,12 @@ TSharedPtr<SInnoCard> SInnoStack::PerformCardRemoval(uint32 Position)
 
 void SInnoStack::PerformCardAddition(TSharedRef<SInnoCard> CardWidget, uint32 Position)
 {
-	VBox->InsertSlot(Position)
-		.Padding(FMargin(0, 2))
-		[
-			CardWidget
-		];
+	MyCards.Insert(CardWidget, Position);
+	if (Position == 0 && MyCards.Num() > 1)
+	{
+		// Invalidate old top card
+		InvalidateCard_Internal(1);
+	}
+
+	AddCard_Internal(CardWidget, Position);
 }

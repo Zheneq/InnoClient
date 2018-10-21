@@ -18,28 +18,38 @@ void SInnoHand::Construct(const FArguments& InArgs)
 
 void SInnoHand::Update(TArray<TSharedPtr<SInnoCard>> Cards)
 {
+	MyCards = Cards;
+
 	if (Panel.IsValid())
 	{
 		Panel->ClearChildren();
 		State.Empty();
 
-		for (TSharedPtr<SInnoCard> CardWidget : Cards)
+		for (TSharedPtr<SInnoCard> CardWidget : MyCards)
 		{
-			State.Add(CardWidget->GetCardId());
-
-			CardWidget->OnClicked.BindRaw(this, &SInnoHand::CardClicked);
-			CardWidget->SetRespectMinimalHeight(true);
-			CardWidget->SetHideText(false);
-			CardWidget->SetSelectiveHideText(false);
-			CardWidget->SetHideHeader(false);
-			Panel->AddSlot() [ CardWidget.ToSharedRef() ];
+			State.Add(CardWidget->GetCardInfo());
+			AddCard_Internal(CardWidget);
 		}
 	}
 }
 
-FReply SInnoHand::CardClicked(int32 CardId)
+void SInnoHand::AddCard_Internal(TSharedPtr<SInnoCard> CardWidget)
 {
-	return OnCardClicked.IsBound() ? OnCardClicked.Execute(CardId) : FReply::Unhandled();
+	CardWidget->OnClicked.BindRaw(this, &SInnoHand::CardClicked);
+	CardWidget->SetRespectMinimalHeight(true);
+	CardWidget->SetHideText(false);
+	CardWidget->SetSelectiveHideText(false);
+	CardWidget->SetHideHeader(false);
+
+	Panel->AddSlot()
+		[
+			CardWidget.ToSharedRef()
+		];
+}
+
+FReply SInnoHand::CardClicked(FInnoCardInfo Card)
+{
+	return OnCardClicked.IsBound() ? OnCardClicked.Execute(Card) : FReply::Unhandled();
 }
 
 void SInnoHand::SetChildrenEnabled(bool bNewChildrenEnabled)
@@ -54,11 +64,19 @@ TSharedPtr<SInnoCard> SInnoHand::PerformCardRemoval(uint32 Position)
 {
 	const TSharedRef<SWidget> WidgetPtr = Panel->GetChildren()->GetChildAt(Position);
 	Panel->RemoveSlot(WidgetPtr);
+	MyCards.RemoveAt(Position);
 	return StaticCastSharedRef<SInnoCard>(WidgetPtr);
 }
 
 void SInnoHand::PerformCardAddition(TSharedRef<SInnoCard> CardWidget, uint32 Position)
 {
 	// Inno hand ignores position, always add to the end
-	Panel->AddSlot() [ CardWidget ];
+	const bool bNeedRebuildState = MyCards.IsValidIndex(Position);
+	MyCards.Add(CardWidget);
+	AddCard_Internal(CardWidget);
+
+	if (bNeedRebuildState)
+	{
+		RebuildState(MyCards);
+	}
 }

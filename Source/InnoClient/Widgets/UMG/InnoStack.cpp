@@ -40,7 +40,7 @@ const FText UInnoStack::GetPaletteCategory()
 	return NSLOCTEXT("UMG", "Innovation", "Innovation");
 }
 
-FReply UInnoStack::SlateHandleClicked(int32 CardId)
+FReply UInnoStack::SlateHandleClicked(FInnoCardInfo Card)
 {
 	OnTopCardClicked.Broadcast();
 
@@ -57,7 +57,7 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 
 	if (MyWidget.IsValid() && GM.IsValid())
 	{
-		if (MyWidget->GetState() != Cards)
+		if (!MyWidget->StateIsEqualTo(Cards))
 		{
 			TArray< TSharedPtr<SInnoCard> > NewWidgets;
 			for (const int32 CardId : Cards)

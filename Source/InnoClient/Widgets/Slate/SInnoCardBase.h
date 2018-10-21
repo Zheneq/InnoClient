@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SlateBasics.h"
+#include "InnoCards.h"
 #include "Widgets/Styles/InnoCardWidgetStyle.h"
 #include "Widgets/Styles/InnoWidgetStyles.h"
 
@@ -9,8 +10,8 @@ class SMyBorder;
 class INNOCLIENT_API SInnoCardBase : public SCompoundWidget
 {
 public:
-	DECLARE_DELEGATE_RetVal_OneParam(FReply, FOnCardClicked, int32);
-	DECLARE_DELEGATE_OneParam(FOnCardSimple, int32);
+	DECLARE_DELEGATE_RetVal_OneParam(FReply, FOnCardClicked, FInnoCardInfo);
+	DECLARE_DELEGATE_OneParam(FOnCardSimple, FInnoCardInfo);
 
 	SLATE_BEGIN_ARGS(SInnoCardBase)
 		: _Style(&FInnoWidgetStyles::Get().GetWidgetStyle<FInnoCardStyle>("Style_InnoCard"))
@@ -40,14 +41,27 @@ protected:
 	// Transparent border for padding and enabling/disabling display of disabled effects
 	TSharedPtr<SMyBorder> MBBorder;
 
+	// Border for drawing highlight outline. Does not count into card's size.
+	TSharedPtr<SMyBorder> MBHighlight;
+
 	// Colored card background
 	TSharedPtr<SBorder> BBackground;
 
-	// Card id, 0 by default. Supposed to be set by children.
-	int32 CardId;
+	// Card info. Supposed to be set by children.
+	FInnoCardInfo CardInfo;
+
+	// Is card currently highlighted. Can be used e.g. for toggles.
+	bool bIsHighlighted;
 
 public:
-	FORCEINLINE int32 GetCardId() const { return CardId; }
+	FORCEINLINE const FInnoCardInfo& GetCardInfo() const { return CardInfo; }
+	FORCEINLINE bool GetIsHighlighted() const { return bIsHighlighted; }
+	FORCEINLINE void SetIndex(int32 Index) { CardInfo.Index = Index; } // index only matters once the unknown card appears in a container
+
+	void SetIsHighlighted(bool bNewIsHighlighted);
+
+	// Reset appearance to default.
+	virtual void ResetAppearance() {};
 
 protected:
 	// Style currently in use. Pass style ptr in construct if you want to override the default one.
@@ -68,5 +82,13 @@ public:
 
 	/** The delegate to execute when the card is not hovered anymore */
 	FOnCardSimple OnUnhovered;
+
+	/** Unbind all callbacks */
+	void UnbindAll()
+	{
+		OnClicked.Unbind();
+		OnHovered.Unbind();
+		OnUnhovered.Unbind();
+	}
 
 };

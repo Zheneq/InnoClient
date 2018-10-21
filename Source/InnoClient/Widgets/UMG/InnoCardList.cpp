@@ -3,6 +3,9 @@
 #include "InnoCardList.h"
 #include "GMInno.h"
 #include "CardWidgetManager.h"
+#include "InnoCards.h"
+#include "InnoFunctionLibrary.h"
+#include "Widgets/Slate/SInnoCardBack.h"
 #include "InnoClient.h"
 
 void UInnoCardList::SynchronizeProperties()
@@ -11,7 +14,7 @@ void UInnoCardList::SynchronizeProperties()
 
 	if (MyWidget.IsValid())
 	{
-		MyWidget->UpdateFlags(bInteractive);
+		MyWidget->UpdateOptions(SelectMin, SelectMax);
 	}
 }
 
@@ -25,7 +28,6 @@ void UInnoCardList::ReleaseSlateResources(bool bReleaseChildren)
 TSharedRef<SWidget> UInnoCardList::RebuildWidget()
 {
 	MyWidget = SNew(SInnoCardList)
-		.bInteractive(bInteractive)
 		.Tag(Tag)
 		.OnCardClicked(BIND_UOBJECT_DELEGATE(SInnoCard::FOnCardClicked, SlateHandleClicked));
 
@@ -37,15 +39,30 @@ const FText UInnoCardList::GetPaletteCategory()
 	return NSLOCTEXT("UMG", "Innovation", "Innovation");
 }
 
-FReply UInnoCardList::SlateHandleClicked(int32 CardId)
+FReply UInnoCardList::SlateHandleClicked(FInnoCardInfo CardInfo)
 {
-	OnCardClicked.Broadcast(CardId);
+	OnCardClicked.Broadcast(CardInfo.Index);
 
 	return FReply::Handled();
 }
 
-void UInnoCardList::Update(const TArray<int32>& Cards)
+FReply UInnoCardList::SlateHandleSelection(FInnoCardInfo CardInfo)
 {
+	OnCardToggled.Broadcast(CardInfo.Index);
+
+	return FReply::Handled();
+}
+
+void UInnoCardList::SlateHandleValidity(bool bIsNowValid)
+{
+	OnSelectionValidityChanged.Broadcast(bIsNowValid);
+}
+
+void UInnoCardList::Update(const TArray<FInnoCardInfo>& Cards, int32 NewSelectMin, int32 NewSelectMax)
+{
+	SelectMin = NewSelectMin;
+	SelectMax = NewSelectMax;
+
 	if (!GM.IsValid())
 	{
 		const UWorld* World = GetWorld();
@@ -56,12 +73,19 @@ void UInnoCardList::Update(const TArray<int32>& Cards)
 	{
 		if (MyWidget->GetState() != Cards)
 		{
-			TArray< TSharedPtr<SInnoCard> > NewWidgets;
-			for (const int32 CardId : Cards)
+			TArray< TSharedPtr<SInnoCardBase> > NewWidgets;
+			for (const FInnoCardInfo& Card : Cards)
 			{
-				NewWidgets.Add(GM.Get()->CardWidgetManager->GetCard(CardId));
+				if (Card.IsExplicit())
+				{
+					NewWidgets.Add(GM.Get()->CardWidgetManager->GetCard(Card.CardId));
+				}
+				else
+				{
+					NewWidgets.Add(SNew(SInnoCardBack).Card(Card));
+				}
 			}
-			MyWidget->Update(NewWidgets);
+			MyWidget->Update(NewWidgets, SelectMin, SelectMax);
 		}
 	}
 #if UE_BUILD_DEBUG
@@ -72,12 +96,33 @@ void UInnoCardList::Update(const TArray<int32>& Cards)
 #endif // UE_BUILD_DEBUG
 }
 
-void UInnoCardList::SetIsInteractive(bool bNewInteractive)
+void UInnoCardList::UpdateExplicit(const TArray<int32>& Cards, int32 NewSelectMin, int32 NewSelectMax)
 {
-	bInteractive = bNewInteractive;
+	TArray<FInnoCardInfo> NewCards;
+	for (int32 CardId : Cards)
+	{
+		NewCards.Add(FInnoCardInfo::FromCard(UInnoFunctionLibrary::GetCard(this, CardId)));
+	}
+	Update(NewCards, NewSelectMin, NewSelectMax);
+}
+
+void UInnoCardList::UpdateOptions(int32 NewSelectMin, int32 NewSelectMax)
+{
+	SelectMin = NewSelectMin;
+	SelectMax = NewSelectMax;
 
 	if (MyWidget.IsValid())
 	{
-		MyWidget->UpdateFlags(bInteractive);
+		MyWidget->UpdateOptions(SelectMin, SelectMax);
 	}
+}
+
+TArray<int32> UInnoCardList::GetSelectedIndices()
+{
+	if (MyWidget.IsValid())
+	{
+		return MyWidget->GetSelection().Array();
+	}
+
+	return TArray<int32>();
 }
