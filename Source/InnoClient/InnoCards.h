@@ -133,7 +133,73 @@ struct FInnoCardInfo
 	UPROPERTY(BlueprintReadOnly, Category = "Inno")
 		int32 Age;
 
-	FInnoCardInfo() : CardId(0), Set(0), Age(0) {}
+	// For distinguishing unknown cards with the same back in the same container.
+	// The container that holds the widget can modify it.
+	UPROPERTY(BlueprintReadOnly, Category = "Inno")
+		int32 Index;
+
+	FInnoCardInfo() : CardId(0), Set(0), Age(0), Index(INDEX_NONE) {}
+
+	static FInnoCardInfo FromCard(const FInnoCard& Card)
+	{
+		FInnoCardInfo Result;
+		Result.CardId = Card.Id;
+		Result.Set = Card.Set;
+		Result.Age = Card.Age;
+		Result.Index = INDEX_NONE;
+		return Result;
+	}
+
+	FORCEINLINE bool IsExplicit() const
+	{
+		return CardId > 0;
+	}
+
+	FORCEINLINE bool IsValid() const
+	{
+		return IsExplicit() || (Age >= 1 && Age <= 10 && Set >= 0 && Set <= 4);
+	}
+
+	bool operator==(const FInnoCardInfo& Other) const
+	{
+		const bool bValid = IsValid();
+		const bool bOtherValid = Other.IsValid();
+
+		if (bValid != bOtherValid) return false;
+		if (!bValid && !bOtherValid) return true;
+
+		const bool bExplicit = IsExplicit();
+		const bool bOtherExplicit = Other.IsExplicit();
+
+		if (bExplicit != bOtherExplicit) return false; // not identical, but still can refer to the same card
+
+		if (bExplicit)
+		{
+			return CardId == Other.CardId;
+		}
+		else
+		{
+			return Set == Other.Set && Age == Other.Age && Index == Other.Index;
+		}
+
+	}
+
+	bool operator!=(const FInnoCardInfo& Other) const
+	{
+		return !(*this == Other);
+	}
+
+	FString ToString() const
+	{
+		if (IsExplicit())
+		{
+			return FString::Printf(TEXT("[Card%d]"), CardId);
+		}
+		else
+		{
+			return FString::Printf(TEXT("{%d}[%d] #%d"), Set, Age, Index);
+		}
+	}
 };
 
 /**
