@@ -41,12 +41,15 @@ protected:
 	// Option to hide all the text leaving only the header of the top card
 	bool bHideText : 1;
 
+	// Show cooperative dogma warning
+	bool bWarning : 1;
+
 public:
 	// Update contents
-	void Update(const TArray<TSharedPtr<SInnoCard>>& Cards, int32 SplayStart, int32 SplayEnd);
+	void Update(const TArray<TSharedPtr<SInnoCard>>& Cards, int32 SplayStart, int32 SplayEnd, bool bWarning);
 
-	// Update splay only
-	void UpdateSplay(int32 SplayStart, int32 SplayEnd);
+	// Update but keep the cards
+	void Update(int32 SplayStart, int32 SplayEnd, bool bWarning);
 
 	// Update display/interactability
 	void UpdateFlags(bool bNewIsLocalPlayer, bool bNewHideText);

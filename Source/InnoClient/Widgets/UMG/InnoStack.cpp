@@ -47,7 +47,7 @@ FReply UInnoStack::SlateHandleClicked(FInnoCardInfo Card)
 	return FReply::Handled();
 }
 
-void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
+void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay, bool bWarning)
 {
 	if (!GM.IsValid())
 	{
@@ -59,6 +59,8 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 	{
 		if (!MyWidget->StateIsEqualTo(Cards))
 		{
+			// UE_LOG(LogInno, Warning, TEXT("UInnoStack::Update: Performing full update (%d)"), bWarning);
+
 			TArray< TSharedPtr<SInnoCard> > NewWidgets;
 			for (const int32 CardId : Cards)
 			{
@@ -68,7 +70,13 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 			// Server orders cards from bottom to top
 			Algo::Reverse(NewWidgets);
 
-			MyWidget->Update(NewWidgets, UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay));
+			MyWidget->Update(NewWidgets, UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay), bWarning);
+		}
+		else
+		{
+			// UE_LOG(LogInno, Warning, TEXT("UInnoStack::Update: Performing partial update (%d)"), bWarning);
+
+			MyWidget->Update(UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay), bWarning);
 		}
 	}
 #if !UE_BUILD_SHIPPING
@@ -79,9 +87,9 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 #endif // !UE_BUILD_SHIPPING
 }
 
-void UInnoStack::UpdateSplay(EInnoSplay Splay)
+void UInnoStack::UpdateSplayAndWarning(EInnoSplay Splay, bool bWarning)
 {
-	MyWidget->UpdateSplay(UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay));
+	MyWidget->Update(UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay), bWarning);
 }
 
 void UInnoStack::SetIsLocalPlayer(bool bNewIsLocalPlayer)

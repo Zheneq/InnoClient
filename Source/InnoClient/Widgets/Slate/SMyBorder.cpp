@@ -2,6 +2,9 @@
 
 #include "SMyBorder.h"
 
+//bCanTick = false;
+//bCanSupportFocus = false;
+
 int32 SMyBorder::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	const FSlateBrush* BrushResource = BorderImage.Get();

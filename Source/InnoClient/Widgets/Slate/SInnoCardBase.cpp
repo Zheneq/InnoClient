@@ -26,7 +26,7 @@ void SInnoCardBase::Construct(const FArguments& InArgs)
 // BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION // disables compiler optimization (optimizing complex widgets is a chore for the compiler)
 TSharedPtr<SWidget> SInnoCardBase::ConstructCard()
 {
-	const float HighlightThickness = 4;
+	const float HighlightThickness = 6;
 
 	return
 		SAssignNew(SizeBox, SBox)
@@ -34,11 +34,12 @@ TSharedPtr<SWidget> SInnoCardBase::ConstructCard()
 		.MinDesiredHeight(Style->MinHeight)
 		.VAlign(EVerticalAlignment::VAlign_Fill)
 		.HAlign(EHorizontalAlignment::HAlign_Fill)
-		.Padding(FMargin(-HighlightThickness))
+		.Padding(FMargin(-Style->HighlightThickness))
 		[
 			SAssignNew(MBHighlight, SMyBorder)
-			.Padding(FMargin(HighlightThickness))
+			.Padding(FMargin(Style->HighlightThickness))
 			.ShowEffectWhenDisabled(false)
+			.BorderImage(&Style->HighlightBrush)
 			.BorderBackgroundColor(FLinearColor::Transparent)
 			.Visibility(EVisibility::SelfHitTestInvisible)
 			.VAlign(EVerticalAlignment::VAlign_Fill)

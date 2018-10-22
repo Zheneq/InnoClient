@@ -28,27 +28,33 @@ void SInnoStack::UpdateFlags(bool bNewIsLocalPlayer, bool bNewHideText)
 	UpdateFlags_Internal();
 }
 
-void SInnoStack::Update(const TArray<TSharedPtr<SInnoCard>>& Cards, int32 SplayStart, int32 SplayEnd)
+void SInnoStack::Update(const TArray<TSharedPtr<SInnoCard>>& Cards, int32 SplayStart, int32 SplayEnd, bool bNewWarning)
 {
 	if (VBox.IsValid())
 	{
 		MyCards = Cards;
 		MySplayStart = SplayStart;
 		MySplayEnd = SplayEnd;
+		bWarning = bNewWarning;
 
 		UpdateCards_Internal();
 		UpdateSplay_Internal();
 	}
 }
 
-void SInnoStack::UpdateSplay(int32 SplayStart, int32 SplayEnd)
+void SInnoStack::Update(int32 SplayStart, int32 SplayEnd, bool bNewWarning)
 {
 	if (VBox.IsValid())
 	{
 		MySplayStart = SplayStart;
 		MySplayEnd = SplayEnd;
+		bWarning = bNewWarning;
 
 		UpdateSplay_Internal();
+		if (MyCards.Num() > 0)
+		{
+			MyCards[0]->SetIsHighlighted(bWarning);
+		}
 	}
 }
 
@@ -99,6 +105,7 @@ void SInnoStack::InvalidateCard_Internal(int32 Position)
 	CardWidget->SetHideHeader(false);
 	CardWidget->SetEnabled(bTopCard);
 	CardWidget->SetSelectiveHideText(!bTopCard);
+	CardWidget->SetIsHighlighted(bTopCard && bWarning);
 	CardWidget->OnClicked.Unbind();
 
 	if (bTopCard)

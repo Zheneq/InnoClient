@@ -87,6 +87,10 @@ void UInnoCardList::Update(const TArray<FInnoCardInfo>& Cards, int32 NewSelectMi
 			}
 			MyWidget->Update(NewWidgets, SelectMin, SelectMax);
 		}
+		else
+		{
+			MyWidget->UpdateOptions(SelectMin, SelectMax);
+		}
 	}
 #if !UE_BUILD_SHIPPING
 	else

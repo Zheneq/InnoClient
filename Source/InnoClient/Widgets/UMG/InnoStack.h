@@ -53,10 +53,10 @@ public:
 		bool bHideText;
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
-		void Update(const TArray<int32>& Cards, EInnoSplay Splay);
+		void Update(const TArray<int32>& Cards, EInnoSplay Splay, bool bWarning);
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
-		void UpdateSplay(EInnoSplay Splay);
+		void UpdateSplayAndWarning(EInnoSplay Splay, bool bWarning);
 
 	UFUNCTION(BlueprintCallable, Category = "Innovation")
 		void SetIsLocalPlayer(bool bNewIsLocalPlayer);

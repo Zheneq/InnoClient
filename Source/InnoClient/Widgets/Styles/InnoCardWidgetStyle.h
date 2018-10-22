@@ -24,6 +24,9 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		, BorderPadding(2)
 		, ColorAndOpacity(FLinearColor::White)
 
+		, HighlightBrush(FSlateColorBrush(FLinearColor::White))
+		, HighlightThickness(4)
+
 		, HeaderHeight(60)
 		, IconsFillWidth(3)
 		, NameFillWidth(6)
@@ -92,6 +95,10 @@ struct FInnoCardStyle : public FSlateWidgetStyle
 		TArray<FLinearColor> AgeBackgroundColors_EDITOR;
 #endif // WITH_EDITORONLY_DATA
 
+	UPROPERTY(EditDefaultsOnly, Category = "Card_Highlight")
+		FSlateBrush HighlightBrush;
+	UPROPERTY(EditDefaultsOnly, Category = "Card_Highlight")
+		float HighlightThickness;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Card_Header")
 		float HeaderHeight;
