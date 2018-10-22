@@ -71,12 +71,12 @@ void UInnoStack::Update(const TArray<int32>& Cards, EInnoSplay Splay)
 			MyWidget->Update(NewWidgets, UInnoFunctionLibrary::SplayStart(Splay), UInnoFunctionLibrary::SplayEnd(Splay));
 		}
 	}
-#if UE_BUILD_DEBUG
+#if !UE_BUILD_SHIPPING
 	else
 	{
 		UE_LOG(LogInno, Warning, TEXT("UInnoStack::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
 	}
-#endif // UE_BUILD_DEBUG
+#endif // !UE_BUILD_SHIPPING
 }
 
 void UInnoStack::UpdateSplay(EInnoSplay Splay)

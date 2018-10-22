@@ -88,12 +88,12 @@ void UInnoCardList::Update(const TArray<FInnoCardInfo>& Cards, int32 NewSelectMi
 			MyWidget->Update(NewWidgets, SelectMin, SelectMax);
 		}
 	}
-#if UE_BUILD_DEBUG
+#if !UE_BUILD_SHIPPING
 	else
 	{
 		UE_LOG(LogInno, Warning, TEXT("UInnoCardList::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
 	}
-#endif // UE_BUILD_DEBUG
+#endif // !UE_BUILD_SHIPPING
 }
 
 void UInnoCardList::UpdateExplicit(const TArray<int32>& Cards, int32 NewSelectMin, int32 NewSelectMax)

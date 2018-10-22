@@ -54,12 +54,12 @@ void UInnoHand::Update(const TArray<int32>& Cards)
 			MyWidget->Update(NewWidgets);
 		}
 	}
-#if UE_BUILD_DEBUG
+#if !UE_BUILD_SHIPPING
 	else
 	{
 		UE_LOG(LogInno, Warning, TEXT("UInnoHand::Update: Failed (MyWidget: %d, GM: %d)"), MyWidget.IsValid(), GM.IsValid());
 	}
-#endif // UE_BUILD_DEBUG
+#endif // !UE_BUILD_SHIPPING
 }
 
 void UInnoHand::SetChildrenEnabled(bool bNewChildrenEnabled)
