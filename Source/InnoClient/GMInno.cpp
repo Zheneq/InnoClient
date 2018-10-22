@@ -430,15 +430,48 @@ FString AGMInno::BuildProposeJson(const TArray<FString>& OtherPlayers, bool bEch
 
 FString AGMInno::BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) const
 {
-	FString Answer;
-	bool bFirst = true;
+	FString ReplyString;
+
+	// Checking if we actually have an array of numbers
+	bool bIsNumeric = true;
 	for (const FString& R : Reply)
 	{
-		Answer = FString::Printf(TEXT("%s%s \"%s\""), *Answer, bFirst ? TEXT("") : TEXT(","), *R);
-		bFirst = false;
+		if (!R.IsNumeric())
+		{
+			bIsNumeric = false;
+			break;
+		}
 	}
 
-	return FString::Printf(TEXT("{\"id\":%d,\"answer\":[%s]}"), RequestId, *Answer);
+	// Building reply string
+	bool bFirst = true;
+	if (bIsNumeric) // branching here because Printf demands a string literal (string variable version is deprecated as of 4.20)
+	{
+		for (const FString& R : Reply)
+		{
+			// if numeric, just print it
+			ReplyString = FString::Printf((TEXT("%s%s %s")), *ReplyString, bFirst ? TEXT("") : TEXT(","), *R);
+			bFirst = false;
+		}
+	}
+	else
+	{
+		for (const FString& R : Reply)
+		{
+			// if not numeric, use quotes
+			ReplyString = FString::Printf((TEXT("%s%s \"%s\"")), *ReplyString, bFirst ? TEXT("") : TEXT(","), *R);
+			bFirst = false;
+		}
+	}
+
+	ReplyString = FString::Printf(TEXT("{\"id\":%d,\"answer\":[%s]}"), RequestId, *ReplyString);
+
+	if (bIsNumeric)
+	{
+		UE_LOG(LogInno, Warning, TEXT("Converted reply to numeric: %s"), *ReplyString)
+	}
+
+	return ReplyString;
 }
 
 
