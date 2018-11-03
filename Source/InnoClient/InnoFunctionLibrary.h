@@ -46,6 +46,15 @@ public:
 		static int32 SplayEnd(EInnoSplay Splay);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
+		static FInnoCardInfo GetCardInfo(const UObject* WorldContextObject, int32 Index);
+
+	// Returns card index based on card info.
+	// May be actual card index, may be unknown card code.
+	// Reverse operation to GetCardInfo.
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
+		static int32 GetCardIndex(const FInnoCardInfo& Card);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno", Meta = (WorldContext = "WorldContextObject"))
 		static const FInnoCard& GetCard(const UObject* WorldContextObject, int32 Index);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inno")
@@ -62,5 +71,5 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inno")
 		static FInnoCardInfo StringToCard(const FString& String);
-	
+
 };

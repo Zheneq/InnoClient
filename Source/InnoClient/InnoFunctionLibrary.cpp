@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InnoFunctionLibrary.h"
+#include "Engine.h"
 #include "InnoClient.h"
 #include "GIInno.h"
 #include "InnoCardData.h"
@@ -152,6 +153,38 @@ const FInnoCard& UInnoFunctionLibrary::GetCard(const UObject* WorldContextObject
 	return UInnoCards::CardNone;
 }
 
+FInnoCardInfo UInnoFunctionLibrary::GetCardInfo(const UObject* WorldContextObject, int32 Index)
+{
+	FInnoCardInfo Card;
+
+	if (Index == 0)
+	{
+		return Card;
+	}
+	else if (Index < 0)
+	{
+		Card.Age = -Index / 4;
+		Card.Set = -Index % 4;
+		return Card;
+	}
+
+	return FInnoCardInfo::FromCard(GetCard(WorldContextObject, Index));
+}
+
+int32 UInnoFunctionLibrary::GetCardIndex(const FInnoCardInfo& Card)
+{
+	if (Card.IsExplicit())
+	{
+		return Card.CardId;
+	}
+	else if (Card.IsValid())
+	{
+		return -(Card.Age * 4 + Card.Set);
+	}
+
+	return 0;
+}
+
 FString UInnoFunctionLibrary::GetInlineScriptVar(FString Page, FString VarName)
 {
 	int32 NameIdx = Page.Find(VarName);
@@ -209,20 +242,20 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 			FRegexMatcher Matcher(RegexCard, String);
 			if (Matcher.FindNext())
 			{
-				const int32 Card = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+				int32 Card = FCString::Atoi(*Matcher.GetCaptureGroup(1));
 				const FString Name = Matcher.GetCaptureGroup(2);
 				const FString Set = Matcher.GetCaptureGroup(3);
 				const int32 Age = FCString::Atoi(*Matcher.GetCaptureGroup(4));
 
-				if (Card)
+				if (!Card)
 				{
-					// ReplaceMatch(String, Matcher, FString::Printf("<Inno.InlineCard>%d</>", Card));
-					ReplaceMatch(String, Matcher, FString::Printf(TEXT("[%s (%s%d)]"), *Name, *Set, Age));
+					FInnoCardInfo CardInfo;
+					CardInfo.Set = UInnoFunctionLibrary::SetFromString(Set);
+					CardInfo.Age = Age;
+					Card = UInnoFunctionLibrary::GetCardIndex(CardInfo);
 				}
-				else
-				{
-					ReplaceMatch(String, Matcher, FString::Printf(TEXT("[%s%d]"), *Set, Age));
-				}
+
+				ReplaceMatch(String, Matcher, FString::Printf(TEXT("{{%d}}"), Card));
 			}
 			else
 			{
@@ -262,7 +295,7 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 
 	// Remove all other tags
 	{
-		const FRegexPattern Regex(TEXT("<([^>]+)>"));
+		const FRegexPattern Regex(TEXT("<(?:[^>]+)>"));
 		const FString EmptyString;
 		while (true)
 		{
@@ -270,24 +303,6 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 			if (Matcher.FindNext())
 			{
 				ReplaceMatch(String, Matcher, EmptyString);
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
-	// Replace brackets with RichTextBlock tags
-	{
-		const FRegexPattern Regex(TEXT("\\{([^\\}]+)\\}"));
-		while (true)
-		{
-			FRegexMatcher Matcher(Regex, String);
-			if (Matcher.FindNext())
-			{
-				const FString Name = Matcher.GetCaptureGroup(1);
-				ReplaceMatch(String, Matcher, FString::Printf(TEXT("<img src=\"%s\"/>"), *Name));
 			}
 			else
 			{
@@ -306,6 +321,40 @@ FString UInnoFunctionLibrary::DeHTML(FString String)
 	String.ReplaceInline(TEXT("\r"), TEXT(" "));
 	String.ReplaceInline(TEXT("\t"), TEXT(" "));
 	while (String.ReplaceInline(TEXT("  "), TEXT(" ")));
+
+	// Replace brackets with RichTextBlock tags
+	{
+		const FRegexPattern Regex(TEXT("\\{\\{([^\\}]+)\\}\\}"));
+		while (true)
+		{
+			FRegexMatcher Matcher(Regex, String);
+			if (Matcher.FindNext())
+			{
+				const FString Id = Matcher.GetCaptureGroup(1);
+				ReplaceMatch(String, Matcher, FString::Printf(TEXT("<Inno.InlineCard>%s</>"), *Id));
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	{
+		const FRegexPattern Regex(TEXT("\\{([^\\}]+)\\}"));
+		while (true)
+		{
+			FRegexMatcher Matcher(Regex, String);
+			if (Matcher.FindNext())
+			{
+				const FString Name = Matcher.GetCaptureGroup(1);
+				ReplaceMatch(String, Matcher, FString::Printf(TEXT("<img src=\"%s\"/>"), *Name));
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
 
 	return String;
 }
