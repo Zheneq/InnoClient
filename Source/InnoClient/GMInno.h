@@ -124,6 +124,36 @@ enum class EInnoPlayAction : uint8
 	IPA_Endorse		UMETA(DisplayName = "Endorse"),
 };
 
+UENUM(BlueprintType, Meta = (Bitflags))
+enum class EInnoGameModes : uint8
+{
+	IGM_Base,
+	IGM_Echoes,
+	IGM_Figures,
+	IGM_EchoesFigures,
+	IGM_NoPlace,
+	IGM_EchoesNoPlace,
+	IGM_FiguresNoPlace,
+	IGM_EchoesFiguresNoPlace,
+	IGM_BaseExtraAch,
+	IGM_EchoesExtraAch,
+	IGM_FiguresExtraAch,
+	IGM_EchoesFiguresExtraAch,
+	IGM_NoPlaceExtraAch,
+	IGM_EchoesNoPlaceExtraAch,
+	IGM_FiguresNoPlaceExtraAch,
+	IGM_EchoesFiguresNoPlaceExtraAch,
+};
+
+USTRUCT(BlueprintType)
+struct FInnoGameMode
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Inno", Meta = (Bitmask, BitmaskEnum = "EInnoGameModes"))
+		int32 GameModes;
+};
+
 /**
  * 
  */
@@ -133,15 +163,22 @@ class INNOCLIENT_API AGMInno : public AGameMode
 	GENERATED_BODY()
 
 public:
+	// HTTP request handler
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class URequester* Requester;
 
+	// Cards handler
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class UInnoCards* Cards;
 
+	// Deprecated
+	// TODO: Remove
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class UCardWidgetManager* CardWidgetManager;
 
+	// Log parser
+	// Reasons about what happend in the game by parsing the log
+	// Also allows log i18n
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		class ULogParser* LogParser;
 
@@ -153,6 +190,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "InnoLow")
 		bool bReconnected;
 
+
+	// TODO: Move BuildJSON function into the BP Func Lib
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
 		static FString BuildLoginData(FString PlayerName, EInnoPlayerPronoun PlayerPronoun);
 
@@ -163,7 +202,10 @@ public:
 		FString BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
-		FString BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm) const;
+		static FString BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "InnoLow")
+		static FString BuildMatchMakingJson(const TArray<int32>& PlayerNum, const FInnoGameMode& AcceptedGameModes);
 
 
 	// Sets default values for this actor's properties
@@ -245,6 +287,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Inno")
 		FInnoDelegateCancelChoose CancelChoose;
 
+protected:
+	//
+	bool bLastChooseHasKeys;
+		
+public:
 	// GAME
 
 	// Number of players in game

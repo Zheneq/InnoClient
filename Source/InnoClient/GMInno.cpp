@@ -15,6 +15,7 @@ AGMInno::AGMInno()
 	Cards = nullptr;
 	CardWidgetManager = nullptr;
 	LastUpdateId = -1;
+	bLastChooseHasKeys = false;
 }
 
 // Called when the game starts or when spawned
@@ -431,7 +432,6 @@ FString AGMInno::BuildProposeJson(const TArray<FString>& OtherPlayers, bool bEch
 FString AGMInno::BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) const
 {
 	FString ReplyString;
-
 	// Checking if we actually have an array of numbers
 	bool bIsNumeric = true;
 	for (const FString& R : Reply)
@@ -443,14 +443,16 @@ FString AGMInno::BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) c
 		}
 	}
 
+	const bool bConvertToNumeric = bIsNumeric && bLastChooseHasKeys;
+
 	// Building reply string
 	bool bFirst = true;
-	if (bIsNumeric) // branching here because Printf demands a string literal (string variable version is deprecated as of 4.20)
+	if (bConvertToNumeric) // branching here because Printf demands a string literal (string variable version is deprecated as of 4.20)
 	{
 		for (const FString& R : Reply)
 		{
 			// if numeric, just print it
-			ReplyString = FString::Printf((TEXT("%s%s %s")), *ReplyString, bFirst ? TEXT("") : TEXT(","), *R);
+			ReplyString = FString::Printf((TEXT("%s%s%s")), *ReplyString, bFirst ? TEXT("") : TEXT(", "), *R);
 			bFirst = false;
 		}
 	}
@@ -459,23 +461,23 @@ FString AGMInno::BuildReplyJson(int32 RequestId, const TArray<FString>& Reply) c
 		for (const FString& R : Reply)
 		{
 			// if not numeric, use quotes
-			ReplyString = FString::Printf((TEXT("%s%s \"%s\"")), *ReplyString, bFirst ? TEXT("") : TEXT(","), *R);
+			ReplyString = FString::Printf((TEXT("%s%s\"%s\"")), *ReplyString, bFirst ? TEXT("") : TEXT(", "), *R);
 			bFirst = false;
 		}
 	}
 
 	ReplyString = FString::Printf(TEXT("{\"id\":%d,\"answer\":[%s]}"), RequestId, *ReplyString);
 
-	if (bIsNumeric)
+	if (bConvertToNumeric)
 	{
-		UE_LOG(LogInno, Warning, TEXT("Converted reply to numeric: %s"), *ReplyString)
+		UE_LOG(LogInno, Warning, TEXT("Converted reply to numeric: %s"), *ReplyString);
 	}
 
 	return ReplyString;
 }
 
 
-FString AGMInno::BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm) const
+FString AGMInno::BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 IntParam, EInnoColor ColorParam, bool bConfirm)
 {
 	FString StrAction, StrPayload;
 
@@ -533,6 +535,23 @@ FString AGMInno::BuildPlayJson(int32 RequestId, EInnoPlayAction Action, int32 In
 
 }
 
+FString AGMInno::BuildMatchMakingJson(const TArray<int32>& AcceptedPlayerNums, const FInnoGameMode& AcceptedGameModes)
+{
+	const int32 MATCHMAKING_ID = -3;
+
+	FString AcceptedPlayerNumString;
+	bool bFirst = true;
+	for (const int32 AcceptedPlayerNum : AcceptedPlayerNums)
+	{
+		AcceptedPlayerNumString = FString::Printf(TEXT("%s%s%d"), *AcceptedPlayerNumString, bFirst ? TEXT("") : TEXT(", "), AcceptedPlayerNum);
+		bFirst = false;
+	}
+
+	return FString::Printf(TEXT("{\"id\":%d,\"seeking\":[%s],\"game_type\":%d}"),
+		MATCHMAKING_ID,
+		*AcceptedPlayerNumString,
+		AcceptedGameModes.GameModes);
+}
 
 void AGMInno::InnoSay(const TSharedPtr<FJsonObject> Object)
 {
@@ -582,9 +601,9 @@ void AGMInno::InnoChoose(const TSharedPtr<FJsonObject> Object)
 		int32 ChooseId = Object->GetIntegerField(TEXT("id"));
 
 		TArray<FString> ChoiceKeys;
-		bool bHasKeys = Object->TryGetStringArrayField(TEXT("choice_keys"), ChoiceKeys);
+		bLastChooseHasKeys = Object->TryGetStringArrayField(TEXT("choice_keys"), ChoiceKeys);
 
-		Choose.Broadcast(ChooseId, Prompt, Choices, bHasKeys ? ChoiceKeys : Choices, Object->GetIntegerField(TEXT("min")), Object->GetIntegerField(TEXT("max")));
+		Choose.Broadcast(ChooseId, Prompt, Choices, bLastChooseHasKeys ? ChoiceKeys : Choices, Object->GetIntegerField(TEXT("min")), Object->GetIntegerField(TEXT("max")));
 	}
 	else
 	{
